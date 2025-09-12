@@ -1,0 +1,78 @@
+package lyc.compiler;
+
+import java_cup.runtime.*;
+
+class Parser;
+
+
+terminal ASSIG;
+terminal MATH_OP;
+terminal OPEN_BRACKET;
+terminal CLOSE_BRACKET;
+terminal WHILE;
+terminal IF;
+terminal ELSE;
+terminal IDENTIFIER;
+terminal INTEGER_CONSTANT;
+terminal FLOAT_CONSTANT;
+terminal STRING_CONSTANT;
+terminal WRITE;
+terminal READ;
+terminal INIT;
+terminal AND;
+terminal NOT;
+terminal OR;
+terminal COMP_OP;
+terminal COMMA; 
+terminal NUMERAL;  
+terminal DATA_TYPE; 
+terminal OPEN_CBRACKET;
+terminal CLOSE_CBRACKET;
+
+// ==== NON TERMINALS ====
+non terminal sentence;
+non terminal assignment;
+non terminal expression;
+non terminal term;
+non terminal factor;
+non terminal whilestatement;
+non terminal ifstatement;
+non terminal andcomparison;
+non terminal orcomparison;
+non terminal notcomparison;
+non terminal readblock;
+non terminal writeblock;
+non terminal anything;
+non terminal anything_list;
+
+// ==== START ====
+start with sentence;
+sentence ::= assignment {: System.out.println("End"); :};
+
+// ==== PRODUCTIONS ====
+anything_list ::= /* empty */ | anything_list anything;
+
+anything ::=  assignment | whilestatement | ifstatement | andcomparison | orcomparison | notcomparison | readblock | writeblock;
+
+
+assignment ::= IDENTIFIER ASSIG expression {: System.out.println("Asignacion"); :};
+
+expression ::= expression:exp MATH_OP:matop term:te {: System.out.println("Expresion: " + exp + "Operacion: " + matop + "Termino: " + ter); :} 
+term ::= term MATH_OP:matop factor {: System.out.println(matop); :}
+
+factor ::= IDENTIFIER:id {: System.out.println("Id: " + id); :} | INTEGER_CONSTANT:constant {: System.out.println("Constant: " + constant ); :} | OPEN_BRACKET expression CLOSE_BRACKET {: System.out.println("Factor = (Expression)"); :};
+
+whilestatement ::= WHILE OPEN_BRACKET expression COMP_OP expression CLOSE_BRACKET OPEN_CBRACKET anything_list CLOSE_CBRACKET{: System.out.println("While = " + $3 + " " + $4 + " " + $5); :};
+
+ifstatement ::= IF OPEN_BRACKET expression:exp COMP_OP:compop expression:exp2 CLOSE_BRACKET{: System.out.println("If = " + exp + " " + compop + " " + exp2); :}
+
+
+andcomparison ::= expression AND expression {: System.out.println("And"); :};
+
+orcomparison ::= expression OR expression {: System.out.println("Or"); :};
+
+notcomparison ::= NOT expression {: System.out.println("Not"); :};
+
+readblock ::= READ OPEN_BRACKET IDENTIFIER CLOSE_BRACKET {: System.out.println("Read"); :};
+
+writeblock ::= WRITE OPEN_BRACKET IDENTIFIER CLOSE_BRACKET {: System.out.println("Write Id"); :}| WRITE OPEN_BRACKET STRING_CONSTANT CLOSE_BRACKET {: System.out.println("Write String"); :};
