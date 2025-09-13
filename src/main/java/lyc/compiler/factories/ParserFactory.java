@@ -1,8 +1,8 @@
 package lyc.compiler.factories;
 
-import lyc.compiler.Parser;
-
 import java.io.Reader;
+
+import lyc.compiler.Parser;
 
 public final class ParserFactory {
 

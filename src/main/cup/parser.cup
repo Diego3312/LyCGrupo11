@@ -11,8 +11,6 @@ terminal IF;
 terminal ELSE;
 terminal INIT;
 terminal READ;
-terminal LIST_INDEX_OF_LAST;
-terminal PRINT_REVERSE;
 terminal ASSIG;
 terminal PLUS;
 terminal SUB;
@@ -44,7 +42,6 @@ terminal OR;
 terminal NOT;
 terminal QUOT;
 terminal SINGLE_QUOT;
-terminal PERCENT;
 terminal INT;
 terminal FLOAT;
 terminal STRING;
@@ -72,8 +69,6 @@ non terminal type;
 non terminal object;
 non terminal listar;
 non terminal listado;
-non terminal muestrareversa;
-non terminal list_character;
 
 // Start Symbol Definition
 
@@ -88,8 +83,6 @@ sentence ::= iteration {: System.out.println("Sentence while"); :};
 sentence ::= escribir {: System.out.println("Sentence write"); :};
 sentence ::= leer {: System.out.println("Sentence read"); :};
 sentence ::= initialization {: System.out.println("Sentence inicializacion"); :};
-//sentence ::= listar {: System.out.println("Sentence listar"); :};
-sentence ::= muestrareversa {: System.out.println("Sentence muestrareversa"); :};
 
 selection ::= IF OPEN_BRACKET condition CLOSE_BRACKET OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("if solo "); :};
 selection ::= IF OPEN_BRACKET condition CLOSE_BRACKET OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("If "); :} ELSE OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("Else"); :};
@@ -148,12 +141,3 @@ factor ::= FLOAT_CONSTANT:floatConstant {: System.out.println("Float Constant: "
 factor ::= STRING_CONSTANT:stringConstant {: System.out.println("String Constant: " + stringConstant ); :};
 factor ::= OPEN_BRACKET expression CLOSE_BRACKET {: System.out.println("Factor = (Expression)"); :};
 
-listar ::= LIST_INDEX_OF_LAST OPEN_BRACKET OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET COMA OPEN_SQUARE_BRACKET listado CLOSE_SQUARE_BRACKET CLOSE_BRACKET{: System.out.println("ListIndexOfLast"); :};
-listado ::= IDENTIFIER:id {: System.out.println("Lista : "+ id); :};
-listado ::= INTEGER_CONSTANT:intConstant {: System.out.println("Lista : "+ intConstant); :};
-listado ::= listado COMA IDENTIFIER:id {: System.out.println("Lista : "+ id); :};
-listado ::= listado COMA INTEGER_CONSTANT:intConstant {: System.out.println("Lista : "+ intConstant); :};
-
-muestrareversa ::= PRINT_REVERSE OPEN_BRACKET OPEN_SQUARE_BRACKET list_character CLOSE_SQUARE_BRACKET COMA INTEGER_CONSTANT CLOSE_BRACKET{: System.out.println("PrintReverseStringN"); :};
-list_character ::= CHARACTER_CONSTANT:charConstant {: System.out.println("Lista : "+ charConstant); :};
-list_character ::= list_character COMA CHARACTER_CONSTANT:charConstant {: System.out.println("Lista : "+ charConstant); :};

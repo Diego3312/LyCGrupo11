@@ -1,21 +1,22 @@
 package lyc.compiler;
 
+import java.io.IOException;
+
+import org.apache.commons.text.CharacterPredicates;
+import org.apache.commons.text.RandomStringGenerator;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+
+import static com.google.common.truth.Truth.assertThat;
+
+import static lyc.compiler.constants.Constants.MAX_LENGTH;
 import lyc.compiler.factories.LexerFactory;
 import lyc.compiler.model.CompilerException;
 import lyc.compiler.model.InvalidIntegerException;
 import lyc.compiler.model.InvalidLengthException;
 import lyc.compiler.model.UnknownCharacterException;
-import org.apache.commons.text.CharacterPredicates;
-import org.apache.commons.text.RandomStringGenerator;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-
-import static com.google.common.truth.Truth.assertThat;
-import static lyc.compiler.constants.Constants.MAX_LENGTH;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
 @Disabled
@@ -26,7 +27,7 @@ public class LexerTest {
 
   @Test
   public void comment() throws Exception{
-    scan("/*This is a comment*/");
+    scan("#+This is a comment*//#region");
     assertThat(nextToken()).isEqualTo(ParserSym.EOF);
   }
 
@@ -65,7 +66,7 @@ public class LexerTest {
 
   @Test
   public void assignmentWithExpressions() throws Exception {
-    scan("c=d*(e-21)/4");
+    scan("c:=d*(e-21)/4");
     assertThat(nextToken()).isEqualTo(ParserSym.IDENTIFIER);
     assertThat(nextToken()).isEqualTo(ParserSym.ASSIG);
     assertThat(nextToken()).isEqualTo(ParserSym.IDENTIFIER);
@@ -83,7 +84,7 @@ public class LexerTest {
   @Test
   public void unknownCharacter() {
     assertThrows(UnknownCharacterException.class, () -> {
-      scan("#");
+      scan("~");
       nextToken();
     });
   }

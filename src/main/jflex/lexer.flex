@@ -43,8 +43,7 @@ import lyc.compiler.simbolsTable.SimbolRow;
 
 /* SECCION TOKENS */
 
-Percent = "%"
-Assig = "="
+Assig = ":="
 OpenBracket = "("
 CloseBracket = ")"
 OpenCurlyBracket = "{"
@@ -55,8 +54,8 @@ Dot = "."
 DosPuntos = ":"
 Coma = ","
 SemiColon = ";"
-And = "&"
-Or = "||"
+And = "AND"
+Or = "OR"
 Not = "not" | "NOT"
 LessThan = "<"
 GreaterThan = ">"
@@ -77,8 +76,6 @@ while = "while" | "WHILE"
 else = "else" | "ELSE"
 Init = "init" | "INIT"
 Read = "read" | "READ"
-ListIndexOfLast = "ListIndexOfLast"
-PrintReverseStringN ="PrintReverseStringN"
 
 //Conjuntos
 Letter = [a-zA-Z]
@@ -94,12 +91,10 @@ Texto_Invalido = [^\{Character}\n]
 
 Identifier = {Letter} ({Letter}|{Digit}|_)*
 IntegerConstant = {DigitSC}{Digit}*| 0
-FloatConstant = {Digit}+{Dot}{Digit}* | {Dot}{Digit}+ ///////////////////////// faltaría ver como agregar "-"?
+FloatConstant = {Digit}+{Dot}{Digit}* | {Dot}{Digit}+ 
 CharacterConstant = \'([^\"\\\\]|\\\\.)\'
-StringConstant = \"([^\"\\\\]|\\\\.)*\" // \"{Character}*\"
-// Comment = "/*" ({Letter}|{Digit}|{WhiteSpace})* "*/"
-// Comment = "/*" ({Character})* "*/"
-Comment = "/*" ~ "*/"
+StringConstant = \"([^\"\\\\]|\\\\.)*\"
+Comment = "#+" ~ "+#"
 
 Plus = "+"
 Mult = "*"
@@ -123,12 +118,8 @@ Div = "/"
   {int}                                    { return symbol(ParserSym.INT); }
   {float}                                  { return symbol(ParserSym.FLOAT); }
   {string}                                 { return symbol(ParserSym.STRING); }
-  {ListIndexOfLast}                        { return symbol(ParserSym.LIST_INDEX_OF_LAST); }
-  {PrintReverseStringN}                    { return symbol(ParserSym.PRINT_REVERSE); }
-
   
   /* Operadores */
-  {Percent}                                { return symbol(ParserSym.PERCENT); }
   {Plus}                                   { return symbol(ParserSym.PLUS); }
   {Sub}                                    { return symbol(ParserSym.SUB); }
   {Mult}                                   { return symbol(ParserSym.MULT); }
@@ -155,7 +146,6 @@ Div = "/"
   {GreaterThanEqual}                       { return symbol(ParserSym.GREATER_THAN_EQUAL); }
   {quot}                                   { return symbol(ParserSym.QUOT); }
   {singlequot}                             { return symbol(ParserSym.SINGLE_QUOT); }
-  {Percent}                                { return symbol(ParserSym.PERCENT); }
 
 /* identifiers */
   {Identifier}                             {
