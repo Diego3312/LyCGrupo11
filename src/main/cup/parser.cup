@@ -11,6 +11,8 @@ terminal IF;
 terminal ELSE;
 terminal INIT;
 terminal READ;
+terminal ISZERO;
+terminal EQUALEXP;
 terminal ASSIG;
 terminal PLUS;
 terminal SUB;
@@ -45,6 +47,7 @@ terminal SINGLE_QUOT;
 terminal INT;
 terminal FLOAT;
 terminal STRING;
+terminal BOOLEAN;
 
 // Non Terminals
 //non terminal code;
@@ -69,11 +72,12 @@ non terminal type;
 non terminal object;
 non terminal listar;
 non terminal listado;
+non terminal equal_expression;
+non terminal lista_expresiones;
 
 // Start Symbol Definition
 
 start with block;
-//code ::= block {: System.out.println("End"); :};
 block ::= sentence {: System.out.println("Block"); :};
 block ::= block sentence {: System.out.println("Blocks"); :};
 
@@ -94,6 +98,7 @@ condition ::= NOT comparation {: System.out.println("Condition NOT "); :};
 
 
 comparation ::= expression comparator expression {: System.out.println("Comparation"); :};
+comparation ::= ISZERO OPEN_BRACKET expression CLOSE_BRACKET;
 
 comparator ::= LESS_THAN {: System.out.println("<"); :};
 comparator ::= GREATER_THAN {: System.out.println(">"); :};
@@ -105,7 +110,9 @@ comparator ::= GREATER_THAN_EQUAL {: System.out.println(">="); :};
 assignment ::= IDENTIFIER:id {: System.out.println("Id: " + id); :} ASSIG object {: System.out.println("Assignment"); :};
 
 object ::= expression;
-object ::= listar;
+//object ::= EQUALEXP OPEN_BRACKET lista_expresiones CLOSE_BRACKET;
+//lista_expresiones ::= lista_expresiones COMA expression;
+//lista_expresiones ::= expression; 
 
 iteration ::= WHILE OPEN_BRACKET condition CLOSE_BRACKET OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("While"); :};
 
@@ -126,6 +133,7 @@ list_identifiers ::= list_identifiers COMA IDENTIFIER:id {: System.out.println("
 type ::= INT {: System.out.println("Integer"); :};
 type ::= FLOAT {: System.out.println("Float"); :};
 type ::= STRING {: System.out.println("String"); :};
+type ::= BOOLEAN {: System.out.println("Boolean"); :};
 
 expression ::= expression PLUS term {: System.out.println("+"); :};
 expression ::= expression SUB term {: System.out.println("-"); :};
@@ -138,6 +146,6 @@ term ::= factor {: System.out.println("Term = factor"); :};
 factor ::= IDENTIFIER:id  {: System.out.println("Id: " + id); :};
 factor ::= INTEGER_CONSTANT:intConstant {: System.out.println("Int Constant: " + intConstant ); :};
 factor ::= FLOAT_CONSTANT:floatConstant {: System.out.println("Float Constant: " + floatConstant ); :};
-factor ::= STRING_CONSTANT:stringConstant {: System.out.println("String Constant: " + stringConstant ); :};
 factor ::= OPEN_BRACKET expression CLOSE_BRACKET {: System.out.println("Factor = (Expression)"); :};
+
 

@@ -68,14 +68,15 @@ singlequot = "\'"
 int = "Int"
 float = "Float"
 string = "String"
+boolean = "Boolean"
 write = "write"
 if = "if"
 while = "while" | "WHILE"
-// write = "write" | "WRITE"
-//if = "if" | "IF"
 else = "else" | "ELSE"
 Init = "init" | "INIT"
 Read = "read" | "READ"
+isZero = "isZero"
+equalExpressions = "equalExpressions"
 
 //Conjuntos
 Letter = [a-zA-Z]
@@ -118,6 +119,9 @@ Div = "/"
   {int}                                    { return symbol(ParserSym.INT); }
   {float}                                  { return symbol(ParserSym.FLOAT); }
   {string}                                 { return symbol(ParserSym.STRING); }
+  {boolean}                                { return symbol(ParserSym.BOOLEAN); }
+  {isZero}                                 { return symbol(ParserSym.ISZERO); }
+  {equalExpressions}                       { return symbol(ParserSym.EQUALEXP); }
   
   /* Operadores */
   {Plus}                                   { return symbol(ParserSym.PLUS); }
