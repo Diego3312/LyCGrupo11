@@ -4,8 +4,15 @@ import java_cup.runtime.*;
 
 class Parser;
 
-
 // Terminals
+terminal WHILE;
+terminal WRITE;
+terminal IF;
+terminal ELSE;
+terminal INIT;
+terminal READ;
+terminal LIST_INDEX_OF_LAST;
+terminal PRINT_REVERSE;
 terminal ASSIG;
 terminal PLUS;
 terminal SUB;
@@ -15,25 +22,138 @@ terminal OPEN_BRACKET;
 terminal CLOSE_BRACKET;
 terminal INTEGER_CONSTANT;
 terminal IDENTIFIER;
+terminal CHARACTER_CONSTANT;
+terminal STRING_CONSTANT;
+terminal FLOAT_CONSTANT;
+terminal OPEN_CURLY_BRACKET;
+terminal CLOSE_CURLY_BRACKET;
+terminal OPEN_SQUARE_BRACKET;
+terminal CLOSE_SQUARE_BRACKET;
+terminal DOT;
+terminal DOS_PUNTOS;
+terminal COMA;
+terminal SEMI_COLON;
+terminal LESS_THAN;
+terminal GREATER_THAN;
+terminal EQUAL;
+terminal NOT_EQUAL;
+terminal LESS_THAN_EQUAL;
+terminal GREATER_THAN_EQUAL;
+terminal AND;
+terminal OR;
+terminal NOT;
+terminal QUOT;
+terminal SINGLE_QUOT;
+terminal PERCENT;
+terminal INT;
+terminal FLOAT;
+terminal STRING;
 
 // Non Terminals
+//non terminal code;
+non terminal block;
 non terminal sentence;
 non terminal assignment;
+non terminal selection;
+non terminal iteration;
+non terminal escribir;
+non terminal leer;
 non terminal expression;
 non terminal term;
 non terminal factor;
+non terminal condition;
+non terminal comparation;
+non terminal comparator;
+non terminal initialization;
+non terminal declaration_block;
+non terminal declaration_var;
+non terminal list_identifiers;
+non terminal type;
+non terminal object;
+non terminal listar;
+non terminal listado;
+non terminal muestrareversa;
+non terminal list_character;
 
 // Start Symbol Definition
-start with sentence;
 
-sentence ::= assignment {: System.out.println("End"); :};
-assignment ::= IDENTIFIER ASSIG expression {: System.out.println("Assignment"); :};
+start with block;
+//code ::= block {: System.out.println("End"); :};
+block ::= sentence {: System.out.println("Block"); :};
+block ::= block sentence {: System.out.println("Blocks"); :};
+
+sentence ::= assignment {: System.out.println("Sentence asignacion"); :};
+sentence ::= selection {: System.out.println("Sentence seleccion"); :};
+sentence ::= iteration {: System.out.println("Sentence while"); :};
+sentence ::= escribir {: System.out.println("Sentence write"); :};
+sentence ::= leer {: System.out.println("Sentence read"); :};
+sentence ::= initialization {: System.out.println("Sentence inicializacion"); :};
+//sentence ::= listar {: System.out.println("Sentence listar"); :};
+sentence ::= muestrareversa {: System.out.println("Sentence muestrareversa"); :};
+
+selection ::= IF OPEN_BRACKET condition CLOSE_BRACKET OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("if solo "); :};
+selection ::= IF OPEN_BRACKET condition CLOSE_BRACKET OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("If "); :} ELSE OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("Else"); :};
+
+condition ::= comparation {: System.out.println("Condition "); :};
+condition ::= condition AND comparation {: System.out.println("Condition AND "); :};
+condition ::= condition OR comparation {: System.out.println("Condition OR "); :};
+condition ::= NOT comparation {: System.out.println("Condition NOT "); :};
+
+
+comparation ::= expression comparator expression {: System.out.println("Comparation"); :};
+
+comparator ::= LESS_THAN {: System.out.println("<"); :};
+comparator ::= GREATER_THAN {: System.out.println(">"); :};
+comparator ::= EQUAL {: System.out.println("=="); :};
+comparator ::= NOT_EQUAL {: System.out.println("!="); :};
+comparator ::= LESS_THAN_EQUAL {: System.out.println("<="); :};
+comparator ::= GREATER_THAN_EQUAL {: System.out.println(">="); :};
+
+assignment ::= IDENTIFIER:id {: System.out.println("Id: " + id); :} ASSIG object {: System.out.println("Assignment"); :};
+
+object ::= expression;
+object ::= listar;
+
+iteration ::= WHILE OPEN_BRACKET condition CLOSE_BRACKET OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("While"); :};
+
+escribir ::= WRITE OPEN_BRACKET STRING_CONSTANT:str CLOSE_BRACKET{: System.out.println("Write " + str); :};
+escribir ::= WRITE OPEN_BRACKET IDENTIFIER:id CLOSE_BRACKET{: System.out.println("Write " + id); :};
+
+leer ::= READ OPEN_BRACKET IDENTIFIER:id CLOSE_BRACKET{: System.out.println("Read " + id); :};
+
+
+initialization ::= INIT OPEN_CURLY_BRACKET declaration_block CLOSE_CURLY_BRACKET {: System.out.println("Initialization"); :};
+declaration_block ::= declaration_var {: System.out.println("Declaration"); :};
+declaration_block ::= declaration_block declaration_var {: System.out.println("Declaration"); :};
+declaration_var ::= list_identifiers DOS_PUNTOS type {: System.out.println("Declaration con coma"); :};
+
+list_identifiers ::= IDENTIFIER:id {: System.out.println("Id: " + id); :};
+list_identifiers ::= list_identifiers COMA IDENTIFIER:id {: System.out.println("lista Ids: " + id); :};
+
+type ::= INT {: System.out.println("Integer"); :};
+type ::= FLOAT {: System.out.println("Float"); :};
+type ::= STRING {: System.out.println("String"); :};
+
 expression ::= expression PLUS term {: System.out.println("+"); :};
 expression ::= expression SUB term {: System.out.println("-"); :};
 expression ::= term {: System.out.println("Expression = Term"); :};
+
 term ::= term MULT factor {: System.out.println("*"); :};
 term ::= term DIV factor {: System.out.println("/"); :};
 term ::= factor {: System.out.println("Term = factor"); :};
+
 factor ::= IDENTIFIER:id  {: System.out.println("Id: " + id); :};
-factor ::= INTEGER_CONSTANT:constant {: System.out.println("Constant: " + constant ); :};
+factor ::= INTEGER_CONSTANT:intConstant {: System.out.println("Int Constant: " + intConstant ); :};
+factor ::= FLOAT_CONSTANT:floatConstant {: System.out.println("Float Constant: " + floatConstant ); :};
+factor ::= STRING_CONSTANT:stringConstant {: System.out.println("String Constant: " + stringConstant ); :};
 factor ::= OPEN_BRACKET expression CLOSE_BRACKET {: System.out.println("Factor = (Expression)"); :};
+
+listar ::= LIST_INDEX_OF_LAST OPEN_BRACKET OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET COMA OPEN_SQUARE_BRACKET listado CLOSE_SQUARE_BRACKET CLOSE_BRACKET{: System.out.println("ListIndexOfLast"); :};
+listado ::= IDENTIFIER:id {: System.out.println("Lista : "+ id); :};
+listado ::= INTEGER_CONSTANT:intConstant {: System.out.println("Lista : "+ intConstant); :};
+listado ::= listado COMA IDENTIFIER:id {: System.out.println("Lista : "+ id); :};
+listado ::= listado COMA INTEGER_CONSTANT:intConstant {: System.out.println("Lista : "+ intConstant); :};
+
+muestrareversa ::= PRINT_REVERSE OPEN_BRACKET OPEN_SQUARE_BRACKET list_character CLOSE_SQUARE_BRACKET COMA INTEGER_CONSTANT CLOSE_BRACKET{: System.out.println("PrintReverseStringN"); :};
+list_character ::= CHARACTER_CONSTANT:charConstant {: System.out.println("Lista : "+ charConstant); :};
+list_character ::= list_character COMA CHARACTER_CONSTANT:charConstant {: System.out.println("Lista : "+ charConstant); :};
