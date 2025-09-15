@@ -123,7 +123,7 @@ Div = "/"
   {string}                                 { return symbol(ParserSym.STRING); }
   {boolean}                                { return symbol(ParserSym.BOOLEAN); }
   {DateConverted}                          { return symbol(ParserSym.DATECONVERTED); }
-  {convDate}                               { return symbol(ParserSym.CONVDATE); }
+  {convDate}                               { return symbol(ParserSym.CONVDATE, yytext()); }
   {equalExpressions}                       { return symbol(ParserSym.EQUALEXP); }
   
   /* Operadores */

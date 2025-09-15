@@ -112,7 +112,7 @@ assignment ::= IDENTIFIER:id {: System.out.println("Id: " + id); :} ASSIG object
 object ::= expression;
 object ::= STRING_CONSTANT:str {: System.out.println("String_constant: " + str); :};
 object ::= EQUALEXP OPEN_BRACKET lista_expresiones CLOSE_BRACKET;
-object ::= CONVDATE;
+object ::= CONVDATE:date {:System.out.println("convDate: " + date);:};
 lista_expresiones ::= lista_expresiones COMA expression;
 lista_expresiones ::= expression;
 
