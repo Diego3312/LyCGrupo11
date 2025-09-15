@@ -2,6 +2,7 @@ init {
     a1, b1 : Float
     variable1 : Int
     p1, p2, p3, b : String
+    dateC : DateConverted 
 }
 
 a := 1
@@ -64,3 +65,5 @@ if (not a > b)
 
 y := equalExpressions(a + b, 5, b * 2, 3 + 2, a + b) 
 y := equalExpressions(0, 5, a + b) 
+
+dateC := convDate(21-08-2025) 

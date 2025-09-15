@@ -11,7 +11,7 @@ terminal IF;
 terminal ELSE;
 terminal INIT;
 terminal READ;
-terminal ISZERO;
+terminal CONVDATE;
 terminal EQUALEXP;
 terminal ASSIG;
 terminal PLUS;
@@ -48,6 +48,7 @@ terminal INT;
 terminal FLOAT;
 terminal STRING;
 terminal BOOLEAN;
+terminal DATECONVERTED;
 
 // Non Terminals
 //non terminal code;
@@ -98,7 +99,6 @@ condition ::= NOT comparation {: System.out.println("Condition NOT "); :};
 
 
 comparation ::= expression comparator expression {: System.out.println("Comparation"); :};
-comparation ::= ISZERO OPEN_BRACKET expression CLOSE_BRACKET;
 
 comparator ::= LESS_THAN {: System.out.println("<"); :};
 comparator ::= GREATER_THAN {: System.out.println(">"); :};
@@ -112,8 +112,9 @@ assignment ::= IDENTIFIER:id {: System.out.println("Id: " + id); :} ASSIG object
 object ::= expression;
 object ::= STRING_CONSTANT:str {: System.out.println("String_constant: " + str); :};
 object ::= EQUALEXP OPEN_BRACKET lista_expresiones CLOSE_BRACKET;
+object ::= CONVDATE;
 lista_expresiones ::= lista_expresiones COMA expression;
-lista_expresiones ::= expression; 
+lista_expresiones ::= expression;
 
 iteration ::= WHILE OPEN_BRACKET condition CLOSE_BRACKET OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("While"); :};
 
@@ -135,6 +136,7 @@ type ::= INT {: System.out.println("Integer"); :};
 type ::= FLOAT {: System.out.println("Float"); :};
 type ::= STRING {: System.out.println("String"); :};
 type ::= BOOLEAN {: System.out.println("Boolean"); :};
+type ::= DATECONVERTED {: System.out.println("DateConverted"); :};
 
 expression ::= expression PLUS term {: System.out.println("+"); :};
 expression ::= expression SUB term {: System.out.println("-"); :};

@@ -69,13 +69,14 @@ int = "Int"
 float = "Float"
 string = "String"
 boolean = "Boolean"
+DateConverted = "DateConverted"
 write = "write"
 if = "if"
 while = "while" | "WHILE"
 else = "else" | "ELSE"
 Init = "init" | "INIT"
 Read = "read" | "READ"
-isZero = "isZero"
+
 equalExpressions = "equalExpressions"
 
 //Conjuntos
@@ -89,10 +90,11 @@ WhiteSpace = {LineTerminator} | {Identation}
 SpecialCar = [><:\+\-\*,\/@\%\.\[\];\(\)= ¿¡!]
 Character = {Letter} | {Digit}| {WhiteSpace} | {SpecialCar}
 Texto_Invalido = [^\{Character}\n]
+convDate = "convDate" "(" {Digit}{Digit} "-" {Digit}{Digit} "-" {Digit}{Digit}{Digit}{Digit} ")"
 
 Identifier = {Letter} ({Letter}|{Digit}|_)*
 IntegerConstant = {DigitSC}{Digit}*| 0
-FloatConstant = {Digit}+{Dot}{Digit}* | {Dot}{Digit}+ 
+FloatConstant = {Digit}+{Dot}{Digit}* | {Dot}{Digit}+
 CharacterConstant = \'([^\"\\\\]|\\\\.)\'
 StringConstant = \"([^\"\\\\]|\\\\.)*\"
 Comment = "#+" ~ "+#"
@@ -120,7 +122,8 @@ Div = "/"
   {float}                                  { return symbol(ParserSym.FLOAT); }
   {string}                                 { return symbol(ParserSym.STRING); }
   {boolean}                                { return symbol(ParserSym.BOOLEAN); }
-  {isZero}                                 { return symbol(ParserSym.ISZERO); }
+  {DateConverted}                          { return symbol(ParserSym.DATECONVERTED); }
+  {convDate}                               { return symbol(ParserSym.CONVDATE); }
   {equalExpressions}                       { return symbol(ParserSym.EQUALEXP); }
   
   /* Operadores */
