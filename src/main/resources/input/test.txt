@@ -62,3 +62,5 @@ if (not a > b)
     write("if 3")
 }
 
+y := equalExpressions(a + b, 5, b * 2, 3 + 2, a + b) 
+y := equalExpressions(0, 5, a + b) 

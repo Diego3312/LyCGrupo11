@@ -110,9 +110,10 @@ comparator ::= GREATER_THAN_EQUAL {: System.out.println(">="); :};
 assignment ::= IDENTIFIER:id {: System.out.println("Id: " + id); :} ASSIG object {: System.out.println("Assignment"); :};
 
 object ::= expression;
-//object ::= EQUALEXP OPEN_BRACKET lista_expresiones CLOSE_BRACKET;
-//lista_expresiones ::= lista_expresiones COMA expression;
-//lista_expresiones ::= expression; 
+object ::= STRING_CONSTANT:str {: System.out.println("String_constant: " + str); :};
+object ::= EQUALEXP OPEN_BRACKET lista_expresiones CLOSE_BRACKET;
+lista_expresiones ::= lista_expresiones COMA expression;
+lista_expresiones ::= expression; 
 
 iteration ::= WHILE OPEN_BRACKET condition CLOSE_BRACKET OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("While"); :};
 
