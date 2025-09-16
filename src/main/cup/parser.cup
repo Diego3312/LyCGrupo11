@@ -6,6 +6,7 @@ import java.util.*;
 import lyc.compiler.simbolsTable.SimbolTable;
 import lyc.compiler.simbolsTable.SimbolRow;
 import lyc.compiler.simbolsTable.DataType;
+import lyc.compiler.validations.Validate;
 
 class Parser;
 
@@ -20,7 +21,7 @@ action code
     public ArrayList<String> listFloat;
     public ArrayList<String> listBoolean;
     public ArrayList<String> listDateConverted;
-
+    public DataType type;
 :}
 
 // Terminals
@@ -129,7 +130,7 @@ comparator ::= NOT_EQUAL {: System.out.println("!="); :};
 comparator ::= LESS_THAN_EQUAL {: System.out.println("<="); :};
 comparator ::= GREATER_THAN_EQUAL {: System.out.println(">="); :};
 
-assignment ::= IDENTIFIER:id {: System.out.println("Id: " + id);
+assignment ::= IDENTIFIER:id {: System.out.println("Id: " + id + " Tipo de dato: " + simbolTable.getDataType(id.toString()));
                                 if ( !( (listStrings != null && listStrings.contains(id)) ||
                                         (listInt != null && listInt.contains(id)) ||
                                         (listFloat != null && listFloat.contains(id)) ||
@@ -138,16 +139,22 @@ assignment ::= IDENTIFIER:id {: System.out.println("Id: " + id);
                                     System.out.println("ERROR: La variable no fue declarada");
                                     System.exit(-1);
                                 }
+                                System.out.println("= " + type);
                              :}
-               ASSIG object {: System.out.println("Assignment"); :};
+               ASSIG object {:  System.out.println("Assignment");
+                                Validate.validateTypes(simbolTable.getDataType(id.toString()), type.toString());
+                            :};
 
-object ::= expression;
+object ::= expression {:type = DataType.INT; :};
 object ::= STRING_CONSTANT:stringConstant {: System.out.println("String_constant: " + stringConstant); 
                                   final String str = stringConstant.toString().replace("\"", ""); 
                                   simbolTable.add("_" + str, DataType.STRING, str.toString(), str.length()); 
+                                  type = DataType.STRING;
                                   :};
-object ::= EQUALEXP OPEN_BRACKET lista_expresiones CLOSE_BRACKET;
-object ::= CONVDATE:date {:System.out.println("convDate: " + date);:};
+object ::= EQUALEXP OPEN_BRACKET lista_expresiones CLOSE_BRACKET {:type = DataType.BOOLEAN; :};
+object ::= CONVDATE:date {: System.out.println("convDate: " + date);
+                            type = DataType.DATECONVERTED; 
+                         :};
 lista_expresiones ::= lista_expresiones COMA expression;
 lista_expresiones ::= expression;
 
@@ -200,7 +207,17 @@ term ::= term MULT factor {: System.out.println("*"); :};
 term ::= term DIV factor {: System.out.println("/"); :};
 term ::= factor {: System.out.println("Term = factor"); :};
 
-factor ::= IDENTIFIER:id  {: System.out.println("Id: " + id); :};
+factor ::= IDENTIFIER:id  {: System.out.println("Id: " + id); 
+                             if ( (listStrings != null && listStrings.contains(id)) || (listBoolean != null && listBoolean.contains(id)) || (listDateConverted != null && listDateConverted.contains(id))){
+                                    System.out.println("ERROR: Debe ser tipo de dato Int o Float");
+                                    System.exit(-1);
+                             }
+                             if ( !(    (listInt != null && listInt.contains(id)) ||
+                                        (listFloat != null && listFloat.contains(id))  )){
+                                    System.out.println("ERROR: La variable no fue declarada");
+                                    System.exit(-1);
+                                }
+                          :};
 factor ::= INTEGER_CONSTANT:intConstant {: System.out.println("Int Constant: " + intConstant ); 
                                            simbolTable.add("_" + intConstant, DataType.INT, intConstant.toString(), null); 
                                            :};

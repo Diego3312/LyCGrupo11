@@ -1,7 +1,5 @@
 package lyc.compiler.validations;
 
-import lyc.compiler.simbolsTable.DataType;
-
 public class Validate {
 
     final static int rangoString = 40;	
@@ -42,8 +40,8 @@ public class Validate {
     }
 
     
-    public static void validateTypes(DataType tipo1, DataType tipo2) throws Exception {
-        if( tipo1 != tipo2) {
+    public static void validateTypes(String tipo1, String tipo2) throws Exception {
+        if( tipo1 != tipo2 && ! ( (tipo1 == "FLOAT" && tipo2 == "INT") || (tipo2 == "FLOAT" && tipo1 == "INT")) ) {
             throw new Exception("Error: tipos de datos no coinciden");
         }
     }

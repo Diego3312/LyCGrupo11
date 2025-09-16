@@ -1,8 +1,8 @@
 init {
-    a, b1 : Float
-    variable1, a1, b2, c : Int
-    p1, p2, p3, b : String
-    dateC : DateConverted 
+    a, b : Float
+    d, e, f, g : Int
+    str1, str2, str3, str4 : String
+    fecha : DateConverted 
     y : Boolean
 }
 
@@ -10,61 +10,61 @@ a := 1
 b := 3
 while (a > b)
 {
-    write("a es mas grande que b")
+    write("a es mayor que b")
     a := a + 1
 }
 
 if (a > b)
 {
-    write("a es mas grande que b")
+    write("a es mayor que b")
 }
 else
 {
-    write("a es mas chico o igual a b")
+    write("a es menor o igual que b")
 }
 
 a := 99999.99
 a := 99.
 a := .9999
 
-b := "@sdADaSjfla%dfg"
-b := "asldk  fh sjf"
-
+str4 := "@sdADaSjfla%dfg"
+str4 := "asldk  fh sjf"
 
 #+ Esto es un comentario +#
 
-p1 := "hola mundo"
+str1 := "hola mundo"
 read(a)
 write(a)
 write("Adios mundo cruel")
 
-a := 1
-b1 := 1
-c := 2
+d := 1
+e := 1
+g := 2
 
-if (a > b AND c > b)
+if (d > e AND g > e)
 {
     write("if 1")
 }
-a := 1
-b := 1
-c := 2
 
-if (a > b OR c > b)
+d := 1
+b := 1
+g := 2
+
+if (d > b OR g > b)
 {
     write("if 2")
 }
 
-a1 := 1
-b2 := 1
-c := 2
+f := 1
+g := 1
+g := 2
 
-if (not a > b)
+if (not d > b)
 {
     write("if 3")
 }
 
-y := equalExpressions(a + b, 5, b * 2, 3 + 2, a + b) 
-y := equalExpressions(0, 5, a + b) 
+y := equalExpressions(d + b, 5, b * 2, 3 + 2, d + b) 
+y := equalExpressions(0, 5, d + b) 
 
-dateC := convDate(21-08-2025) 
+fecha := convDate(21-08-2025)

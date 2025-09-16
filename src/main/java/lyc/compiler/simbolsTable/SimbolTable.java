@@ -100,4 +100,12 @@ public Boolean isInTable(String nombre) {
     }
     return result;
   }
+
+  public String getDataType(String nombre) {
+    return simbols.stream()
+            .filter(row -> row.getId().equals(nombre))
+            .map(SimbolRow::getNombre) // o SimbolRow::getTipo
+            .findFirst()
+            .orElse(null);
+  }
 }
