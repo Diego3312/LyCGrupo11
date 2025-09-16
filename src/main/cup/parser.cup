@@ -129,7 +129,17 @@ comparator ::= NOT_EQUAL {: System.out.println("!="); :};
 comparator ::= LESS_THAN_EQUAL {: System.out.println("<="); :};
 comparator ::= GREATER_THAN_EQUAL {: System.out.println(">="); :};
 
-assignment ::= IDENTIFIER:id {: System.out.println("Id: " + id); :} ASSIG object {: System.out.println("Assignment"); :};
+assignment ::= IDENTIFIER:id {: System.out.println("Id: " + id);
+                                if ( !( (listStrings != null && listStrings.contains(id)) ||
+                                        (listInt != null && listInt.contains(id)) ||
+                                        (listFloat != null && listFloat.contains(id)) ||
+                                        (listBoolean != null && listBoolean.contains(id)) ||
+                                        (listDateConverted != null && listDateConverted.contains(id)) )){
+                                    System.out.println("ERROR: La variable no fue declarada");
+                                    System.exit(-1);
+                                }
+                             :}
+               ASSIG object {: System.out.println("Assignment"); :};
 
 object ::= expression;
 object ::= STRING_CONSTANT:stringConstant {: System.out.println("String_constant: " + stringConstant); 

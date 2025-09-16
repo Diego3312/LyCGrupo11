@@ -1,8 +1,9 @@
 init {
-    a1, b1 : Float
-    variable1 : Int
+    a, b1 : Float
+    variable1, a1, b2, c : Int
     p1, p2, p3, b : String
     dateC : DateConverted 
+    y : Boolean
 }
 
 a := 1
@@ -32,13 +33,13 @@ b := "asldk  fh sjf"
 
 #+ Esto es un comentario +#
 
-a := "hola mundo"
+p1 := "hola mundo"
 read(a)
 write(a)
 write("Adios mundo cruel")
 
 a := 1
-b := 1
+b1 := 1
 c := 2
 
 if (a > b AND c > b)
@@ -54,8 +55,8 @@ if (a > b OR c > b)
     write("if 2")
 }
 
-a := 1
-b := 1
+a1 := 1
+b2 := 1
 c := 2
 
 if (not a > b)
