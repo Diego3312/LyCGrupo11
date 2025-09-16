@@ -1,8 +1,27 @@
 package lyc.compiler;
 
 import java_cup.runtime.*;
+import java.io.*;
+import java.util.*;
+import lyc.compiler.simbolsTable.SimbolTable;
+import lyc.compiler.simbolsTable.SimbolRow;
+import lyc.compiler.simbolsTable.DataType;
 
 class Parser;
+
+action code
+{:
+    
+    public SimbolTable simbolTable = SimbolTable.getSingletonInstance();
+    public ArrayList<String> identifiersList = new ArrayList();
+    public ArrayList<String> listAux = new ArrayList<String>();
+    public ArrayList<String> listStrings;
+    public ArrayList<String> listInt;
+    public ArrayList<String> listFloat;
+    public ArrayList<String> listBoolean;
+    public ArrayList<String> listDateConverted;
+
+:}
 
 // Terminals
 terminal WHILE;
@@ -52,6 +71,7 @@ terminal DATECONVERTED;
 
 // Non Terminals
 //non terminal code;
+non terminal program;
 non terminal block;
 non terminal sentence;
 non terminal assignment;
@@ -78,7 +98,9 @@ non terminal lista_expresiones;
 
 // Start Symbol Definition
 
-start with block;
+start with program;
+program ::= block {: System.out.println("End"); :};
+
 block ::= sentence {: System.out.println("Block"); :};
 block ::= block sentence {: System.out.println("Blocks"); :};
 
@@ -110,7 +132,10 @@ comparator ::= GREATER_THAN_EQUAL {: System.out.println(">="); :};
 assignment ::= IDENTIFIER:id {: System.out.println("Id: " + id); :} ASSIG object {: System.out.println("Assignment"); :};
 
 object ::= expression;
-object ::= STRING_CONSTANT:str {: System.out.println("String_constant: " + str); :};
+object ::= STRING_CONSTANT:stringConstant {: System.out.println("String_constant: " + stringConstant); 
+                                  final String str = stringConstant.toString().replace("\"", ""); 
+                                  simbolTable.add("_" + str, DataType.STRING, str.toString(), str.length()); 
+                                  :};
 object ::= EQUALEXP OPEN_BRACKET lista_expresiones CLOSE_BRACKET;
 object ::= CONVDATE:date {:System.out.println("convDate: " + date);:};
 lista_expresiones ::= lista_expresiones COMA expression;
@@ -129,14 +154,33 @@ declaration_block ::= declaration_var {: System.out.println("Declaration"); :};
 declaration_block ::= declaration_block declaration_var {: System.out.println("Declaration"); :};
 declaration_var ::= list_identifiers DOS_PUNTOS type {: System.out.println("Declaration con coma"); :};
 
-list_identifiers ::= IDENTIFIER:id {: System.out.println("Id: " + id); :};
-list_identifiers ::= list_identifiers COMA IDENTIFIER:id {: System.out.println("lista Ids: " + id); :};
+list_identifiers ::= IDENTIFIER:id {: System.out.println("Id: " + id); 
+                                      this.identifiersList.add(id.toString());
+                                      listAux.add(id.toString()); :};
+list_identifiers ::= list_identifiers COMA IDENTIFIER:id {: System.out.println("lista Ids: " + id); 
+                                                            this.identifiersList.add(id.toString());
+                                                            listAux.add(id.toString()); :};
 
-type ::= INT {: System.out.println("Integer"); :};
-type ::= FLOAT {: System.out.println("Float"); :};
-type ::= STRING {: System.out.println("String"); :};
-type ::= BOOLEAN {: System.out.println("Boolean"); :};
-type ::= DATECONVERTED {: System.out.println("DateConverted"); :};
+type ::= INT {: System.out.println("Integer");
+                simbolTable.addIdentifiers(this.identifiersList, DataType.INT);
+                listInt = new ArrayList<String>(listAux);
+                listAux.clear(); :};
+type ::= FLOAT {: System.out.println("Float"); 
+                  simbolTable.addIdentifiers(this.identifiersList, DataType.FLOAT);
+                  listFloat = new ArrayList<String>(listAux);
+                  listAux.clear(); :};
+type ::= STRING {: System.out.println("String"); 
+                   simbolTable.addIdentifiers(this.identifiersList, DataType.STRING);
+                   listStrings = new ArrayList<String>(listAux);
+                   listAux.clear(); :};
+type ::= BOOLEAN {: System.out.println("Boolean"); 
+                    simbolTable.addIdentifiers(this.identifiersList, DataType.BOOLEAN);
+                    listBoolean = new ArrayList<String>(listAux);
+                    listAux.clear(); :};
+type ::= DATECONVERTED {: System.out.println("DateConverted");  
+                          simbolTable.addIdentifiers(this.identifiersList, DataType.DATECONVERTED);
+                          listDateConverted = new ArrayList<String>(listAux);
+                          listAux.clear(); :};
 
 expression ::= expression PLUS term {: System.out.println("+"); :};
 expression ::= expression SUB term {: System.out.println("-"); :};
@@ -147,8 +191,12 @@ term ::= term DIV factor {: System.out.println("/"); :};
 term ::= factor {: System.out.println("Term = factor"); :};
 
 factor ::= IDENTIFIER:id  {: System.out.println("Id: " + id); :};
-factor ::= INTEGER_CONSTANT:intConstant {: System.out.println("Int Constant: " + intConstant ); :};
-factor ::= FLOAT_CONSTANT:floatConstant {: System.out.println("Float Constant: " + floatConstant ); :};
+factor ::= INTEGER_CONSTANT:intConstant {: System.out.println("Int Constant: " + intConstant ); 
+                                           simbolTable.add("_" + intConstant, DataType.INT, intConstant.toString(), null); 
+                                           :};
+factor ::= FLOAT_CONSTANT:floatConstant {: System.out.println("Float Constant: " + floatConstant ); 
+                                           simbolTable.add("_" + floatConstant, DataType.FLOAT, floatConstant.toString(), null);
+                                           :};
 factor ::= OPEN_BRACKET expression CLOSE_BRACKET {: System.out.println("Factor = (Expression)"); :};
 
 
