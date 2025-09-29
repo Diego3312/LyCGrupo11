@@ -148,7 +148,7 @@ assignment ::= IDENTIFIER:id {: System.out.println("Id: " + id + " Tipo de dato:
 object ::= expression {:type = DataType.INT; :};
 object ::= STRING_CONSTANT:stringConstant {: System.out.println("String_constant: " + stringConstant); 
                                   final String str = stringConstant.toString().replace("\"", ""); 
-                                  simbolTable.add("_" + str, DataType.STRING, str.toString(), str.length()); 
+                                  simbolTable.add("_" + str, DataType.CTE_STRING, str.toString(), str.length()); 
                                   type = DataType.STRING;
                                   :};
 object ::= EQUALEXP OPEN_BRACKET lista_expresiones CLOSE_BRACKET {:type = DataType.BOOLEAN; :};
@@ -172,31 +172,44 @@ declaration_block ::= declaration_block declaration_var {: System.out.println("D
 declaration_var ::= list_identifiers DOS_PUNTOS type {: System.out.println("Declaration con coma"); :};
 
 list_identifiers ::= IDENTIFIER:id {: System.out.println("Id: " + id); 
+                                      if (this.identifiersList.contains(id.toString())){
+                                        System.out.println("ERROR: La variable ya fue declarada");
+                                        System.exit(-1);
+                                      }
                                       this.identifiersList.add(id.toString());
                                       listAux.add(id.toString()); :};
 list_identifiers ::= list_identifiers COMA IDENTIFIER:id {: System.out.println("lista Ids: " + id); 
+                                                            if (this.identifiersList.contains(id.toString())){
+                                                                System.out.println("ERROR: La variable ya fue declarada");
+                                                                System.exit(-1);
+                                                            }
                                                             this.identifiersList.add(id.toString());
                                                             listAux.add(id.toString()); :};
 
 type ::= INT {: System.out.println("Integer");
                 simbolTable.addIdentifiers(this.identifiersList, DataType.INT);
-                listInt = new ArrayList<String>(listAux);
+                if (listInt == null )
+                    listInt = new ArrayList<String>(listAux);
                 listAux.clear(); :};
 type ::= FLOAT {: System.out.println("Float"); 
                   simbolTable.addIdentifiers(this.identifiersList, DataType.FLOAT);
-                  listFloat = new ArrayList<String>(listAux);
+                  if (listFloat == null )
+                    listFloat = new ArrayList<String>(listAux);
                   listAux.clear(); :};
 type ::= STRING {: System.out.println("String"); 
                    simbolTable.addIdentifiers(this.identifiersList, DataType.STRING);
-                   listStrings = new ArrayList<String>(listAux);
+                   if (listStrings == null )
+                    listStrings = new ArrayList<String>(listAux);
                    listAux.clear(); :};
 type ::= BOOLEAN {: System.out.println("Boolean"); 
                     simbolTable.addIdentifiers(this.identifiersList, DataType.BOOLEAN);
-                    listBoolean = new ArrayList<String>(listAux);
+                    if (listBoolean == null )
+                        listBoolean = new ArrayList<String>(listAux);
                     listAux.clear(); :};
 type ::= DATECONVERTED {: System.out.println("DateConverted");  
                           simbolTable.addIdentifiers(this.identifiersList, DataType.DATECONVERTED);
-                          listDateConverted = new ArrayList<String>(listAux);
+                          if (listDateConverted == null )
+                            listDateConverted = new ArrayList<String>(listAux);
                           listAux.clear(); :};
 
 expression ::= expression PLUS term {: System.out.println("+"); :};
@@ -219,10 +232,10 @@ factor ::= IDENTIFIER:id  {: System.out.println("Id: " + id);
                                 }
                           :};
 factor ::= INTEGER_CONSTANT:intConstant {: System.out.println("Int Constant: " + intConstant ); 
-                                           simbolTable.add("_" + intConstant, DataType.INT, intConstant.toString(), null); 
+                                           simbolTable.add("_" + intConstant, DataType.CTE_INT, intConstant.toString(), null); 
                                            :};
 factor ::= FLOAT_CONSTANT:floatConstant {: System.out.println("Float Constant: " + floatConstant ); 
-                                           simbolTable.add("_" + floatConstant, DataType.FLOAT, floatConstant.toString(), null);
+                                           simbolTable.add("_" + floatConstant, DataType.CTE_FLOAT, floatConstant.toString(), null);
                                            :};
 factor ::= OPEN_BRACKET expression CLOSE_BRACKET {: System.out.println("Factor = (Expression)"); :};
 

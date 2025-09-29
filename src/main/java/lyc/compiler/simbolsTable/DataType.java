@@ -5,5 +5,10 @@ public enum DataType {
     FLOAT,
     STRING,
     BOOLEAN,
-    DATECONVERTED
+    DATECONVERTED,
+    CTE_INT,
+    CTE_FLOAT,
+    CTE_STRING,
+    CTE_BOOLEAN,
+    CTE_DATECONVERTED
 }

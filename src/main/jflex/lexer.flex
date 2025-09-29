@@ -87,7 +87,7 @@ LineTerminator = \r|\n|\r\n
 InputCharacter = [^\r\n]
 Identation =  [ \t\f]
 WhiteSpace = {LineTerminator} | {Identation}
-SpecialCar = [><:\+\-\*,\/@\%\.\[\];\(\)= ¿¡!]
+SpecialCar = [><:\+\-\*,\/\%\.\[\];\(\)= ¿¡!#]
 Character = {Letter} | {Digit}| {WhiteSpace} | {SpecialCar}
 Texto_Invalido = [^\{Character}\n]
 convDate = "convDate" "(" {Digit}{Digit} "-" {Digit}{Digit} "-" {Digit}{Digit}{Digit}{Digit} ")"
@@ -97,7 +97,7 @@ IntegerConstant = {DigitSC}{Digit}*| 0
 FloatConstant = {Digit}+{Dot}{Digit}* | {Dot}{Digit}+
 CharacterConstant = \'([^\"\\\\]|\\\\.)\'
 StringConstant = \"([^\"\\\\]|\\\\.)*\"
-Comment = "#+" ~ "+#"
+Comment = "#+" {Character}* "+#"
 
 Plus = "+"
 Mult = "*"
@@ -156,17 +156,17 @@ Div = "/"
 
 /* identifiers */
   {Identifier}                             {
-                                              Validate.validateIdentifier(yytext());
+                                              //Validate.validateIdentifier(yytext());
                                               //addSymbol("IDENTIFIER", yytext());
                                               return symbol(ParserSym.IDENTIFIER, yytext());
                                            }
   /* Constants */
   {IntegerConstant}                        {
-                                              Validate.validateInt(yytext());
+                                              //Validate.validateInt(yytext());
                                               //addSymbol("INTEGER_CONSTANT", yytext()); 
                                               return symbol(ParserSym.INTEGER_CONSTANT, yytext());                                              
                                            }
-  {FloatConstant}                          {  Validate.validateFloat(yytext());
+  {FloatConstant}                          {  //Validate.validateFloat(yytext());
                                               //addSymbol("FLOAT_CONSTANT", yytext());
                                               return symbol(ParserSym.FLOAT_CONSTANT, yytext()); }
   
