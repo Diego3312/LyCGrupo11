@@ -7,6 +7,8 @@ import lyc.compiler.simbolsTable.SimbolTable;
 import lyc.compiler.simbolsTable.SimbolRow;
 import lyc.compiler.simbolsTable.DataType;
 import lyc.compiler.validations.Validate;
+import lyc.compiler.intermediateCodeG.*;
+import lyc.compiler.files.IntermediateCodeGenerator;
 
 class Parser;
 
@@ -14,6 +16,7 @@ action code
 {:
     
     public SimbolTable simbolTable = SimbolTable.getSingletonInstance();
+    public IntermediateCode intermediateCode = IntermediateCode.getSingletonInstance();
     public ArrayList<String> identifiersList = new ArrayList();
     public ArrayList<String> listAux = new ArrayList<String>();
     public ArrayList<String> listStrings;
@@ -22,6 +25,8 @@ action code
     public ArrayList<String> listBoolean;
     public ArrayList<String> listDateConverted;
     public DataType type;
+    public Indice indices = new Indice();
+    public Stack<Integer> pila = new Stack();
 :}
 
 // Terminals
@@ -112,7 +117,9 @@ sentence ::= escribir {: System.out.println("Sentence write"); :};
 sentence ::= leer {: System.out.println("Sentence read"); :};
 sentence ::= initialization {: System.out.println("Sentence inicializacion"); :};
 
-selection ::= IF OPEN_BRACKET condition CLOSE_BRACKET OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("if solo "); :};
+selection ::= IF OPEN_BRACKET condition CLOSE_BRACKET OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("if solo "); 
+                                                                                                      
+                                                                                                    :};
 selection ::= IF OPEN_BRACKET condition CLOSE_BRACKET OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("If "); :} ELSE OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("Else"); :};
 
 condition ::= comparation {: System.out.println("Condition "); :};
@@ -121,9 +128,16 @@ condition ::= condition OR comparation {: System.out.println("Condition OR "); :
 condition ::= NOT comparation {: System.out.println("Condition NOT "); :};
 
 
-comparation ::= expression comparator expression {: System.out.println("Comparation"); :};
+comparation ::= expression {://intermediateCode.crear_terceto("CMP", "[" + indices.getIexpression() + "]", "_");
+                             //indices.setIcomparation(indices.getIexpression()); 
+                            :} comparator expression {: System.out.println("Comparation"); 
+                                                    //indices.setIcomparation(intermediateCode.cantidad());
+                                                 :};
 
-comparator ::= LESS_THAN {: System.out.println("<"); :};
+comparator ::= LESS_THAN {: System.out.println("<");
+                            //intermediateCode.crear_terceto("BGE", "_" , "_");
+                            //pila.push(intermediateCode.cantidad());
+                          :};
 comparator ::= GREATER_THAN {: System.out.println(">"); :};
 comparator ::= EQUAL {: System.out.println("=="); :};
 comparator ::= NOT_EQUAL {: System.out.println("!="); :};
@@ -143,9 +157,12 @@ assignment ::= IDENTIFIER:id {: System.out.println("Id: " + id + " Tipo de dato:
                              :}
                ASSIG object {:  System.out.println("Assignment");
                                 Validate.validateTypes(simbolTable.getDataType(id.toString()), type.toString());
+                                intermediateCode.crear_terceto(":=", id.toString(), "[" + indices.getIobject() + "]" );
                             :};
 
-object ::= expression {:type = DataType.INT; :};
+object ::= expression {:type = DataType.INT;
+                        indices.setIobject(indices.getIexpression());
+                      :};
 object ::= STRING_CONSTANT:stringConstant {: System.out.println("String_constant: " + stringConstant); 
                                   final String str = stringConstant.toString().replace("\"", ""); 
                                   simbolTable.add("_" + str, DataType.CTE_STRING, str.toString(), str.length()); 
@@ -212,13 +229,28 @@ type ::= DATECONVERTED {: System.out.println("DateConverted");
                             listDateConverted = new ArrayList<String>(listAux);
                           listAux.clear(); :};
 
-expression ::= expression PLUS term {: System.out.println("+"); :};
-expression ::= expression SUB term {: System.out.println("-"); :};
-expression ::= term {: System.out.println("Expression = Term"); :};
+expression ::= expression PLUS term {: System.out.println("+");
+                                      intermediateCode.crear_terceto("+", "[" + indices.getIexpression() + "]", "[" + indices.getIterm() + "]");
+                                      indices.setIexpression(intermediateCode.cantidad()); :};
+expression ::= expression SUB term {: System.out.println("-"); 
+                                      intermediateCode.crear_terceto("-", "[" + indices.getIexpression() + "]", "[" + indices.getIterm() + "]");
+                                      indices.setIexpression(intermediateCode.cantidad());
+                                    :};
+expression ::= term {: System.out.println("Expression = Term"); 
+                       indices.setIexpression(indices.getIterm());
+                    :};
 
-term ::= term MULT factor {: System.out.println("*"); :};
-term ::= term DIV factor {: System.out.println("/"); :};
-term ::= factor {: System.out.println("Term = factor"); :};
+term ::= term MULT factor {: System.out.println("*"); 
+                             intermediateCode.crear_terceto("*", "[" + indices.getIterm() + "]", "[" + indices.getIfactor() + "]");
+                             indices.setIterm(intermediateCode.cantidad()) ;
+                          :};
+term ::= term DIV factor {: System.out.println("/");
+                            intermediateCode.crear_terceto("/", "[" + indices.getIterm() + "]", "[" + indices.getIfactor() + "]");
+                            indices.setIterm(intermediateCode.cantidad()) ;
+                          :};
+term ::= factor {: System.out.println("Term = factor");
+                   indices.setIterm(indices.getIfactor());
+                :};
 
 factor ::= IDENTIFIER:id  {: System.out.println("Id: " + id); 
                              if ( (listStrings != null && listStrings.contains(id)) || (listBoolean != null && listBoolean.contains(id)) || (listDateConverted != null && listDateConverted.contains(id))){
@@ -229,14 +261,22 @@ factor ::= IDENTIFIER:id  {: System.out.println("Id: " + id);
                                         (listFloat != null && listFloat.contains(id))  )){
                                     System.out.println("ERROR: La variable no fue declarada");
                                     System.exit(-1);
-                                }
+                             }
+                             intermediateCode.crear_terceto(id.toString()," ", " ");
+                             indices.setIfactor(intermediateCode.cantidad()) ; 
                           :};
 factor ::= INTEGER_CONSTANT:intConstant {: System.out.println("Int Constant: " + intConstant ); 
                                            simbolTable.add("_" + intConstant, DataType.CTE_INT, intConstant.toString(), null); 
+                                           intermediateCode.crear_terceto(intConstant.toString(), " ", " ");
+                                           indices.setIfactor(intermediateCode.cantidad()) ; 
                                            :};
 factor ::= FLOAT_CONSTANT:floatConstant {: System.out.println("Float Constant: " + floatConstant ); 
                                            simbolTable.add("_" + floatConstant, DataType.CTE_FLOAT, floatConstant.toString(), null);
+                                           intermediateCode.crear_terceto(floatConstant.toString()," ", " ");
+                                           indices.setIfactor(intermediateCode.cantidad()) ; 
                                            :};
-factor ::= OPEN_BRACKET expression CLOSE_BRACKET {: System.out.println("Factor = (Expression)"); :};
+factor ::= OPEN_BRACKET expression CLOSE_BRACKET {: System.out.println("Factor = (Expression)"); 
+                                                    indices.setIfactor(indices.getIexpression());
+                                                 :};
 
 
