@@ -27,6 +27,9 @@ action code
     public DataType type;
     public Indice indices = new Indice();
     public Stack<Integer> pila = new Stack();
+    public String comparar;
+    public int cant_comparar = 0;
+    public Stack<Integer> comparaciones = new Stack();
 :}
 
 // Terminals
@@ -101,6 +104,7 @@ non terminal listar;
 non terminal listado;
 non terminal equal_expression;
 non terminal lista_expresiones;
+non terminal body_selection;
 
 // Start Symbol Definition
 
@@ -111,38 +115,55 @@ block ::= sentence {: System.out.println("Block"); :};
 block ::= block sentence {: System.out.println("Blocks"); :};
 
 sentence ::= assignment {: System.out.println("Sentence asignacion"); :};
-sentence ::= selection {: System.out.println("Sentence seleccion"); :};
+sentence ::= selection {: System.out.println("Sentence seleccion");:};
 sentence ::= iteration {: System.out.println("Sentence while"); :};
 sentence ::= escribir {: System.out.println("Sentence write"); :};
 sentence ::= leer {: System.out.println("Sentence read"); :};
 sentence ::= initialization {: System.out.println("Sentence inicializacion"); :};
 
-selection ::= IF OPEN_BRACKET condition CLOSE_BRACKET OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("if solo "); 
-                                                                                                      
-                                                                                                    :};
-selection ::= IF OPEN_BRACKET condition CLOSE_BRACKET OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("If "); :} ELSE OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("Else"); :};
+selection ::= IF OPEN_BRACKET {:cant_comparar = 0;:}condition CLOSE_BRACKET {:comparaciones.push(cant_comparar);:} body_selection;
 
-condition ::= comparation {: System.out.println("Condition "); :};
-condition ::= condition AND comparation {: System.out.println("Condition AND "); :};
+body_selection ::= OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("if solo \n pila: " + pila);
+                                                                                                      int completar = intermediateCode.cantidad() + 1;
+                                                                                                      System.out.println("salto: " + completar + " cantidad: " + comparaciones.peek());
+                                                                                                      for (int i = comparaciones.pop(); i >  0; i--){
+                                                                                                        intermediateCode.modificar_terceto(pila.pop(), "[" + String.valueOf(completar) + "]");
+                                                                                                      }
+                                                                                                    :};
+body_selection ::= OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("If "); 
+                                                                   int completar = intermediateCode.cantidad() + 2;
+                                                                   System.out.println("salto: " + completar + " cantidad: " + comparaciones.peek());
+                                                                   for (int i = comparaciones.pop(); i >  0; i--){
+                                                                      intermediateCode.modificar_terceto(pila.pop(), "[" + String.valueOf(completar) + "]");
+                                                                   }
+                                                                :}
+                   ELSE {:intermediateCode.crear_terceto("JMP", "_", "_"); pila.push(intermediateCode.cantidad() - 1);:} OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("Else"); intermediateCode.modificar_terceto(pila.pop(), "[" + String.valueOf(intermediateCode.cantidad() + 1) + "]" );:};
+
+condition ::= comparation {: System.out.println("Condition "); cant_comparar++; :};
+condition ::= condition AND comparation {: System.out.println("Condition AND "); cant_comparar++; :};
 condition ::= condition OR comparation {: System.out.println("Condition OR "); :};
 condition ::= NOT comparation {: System.out.println("Condition NOT "); :};
 
 
 comparation ::= expression {://intermediateCode.crear_terceto("CMP", "[" + indices.getIexpression() + "]", "_");
-                             //indices.setIcomparation(indices.getIexpression()); 
+                             indices.setIexpression1(indices.getIexpression()); 
                             :} comparator expression {: System.out.println("Comparation"); 
-                                                    //indices.setIcomparation(intermediateCode.cantidad());
+                                                        intermediateCode.crear_terceto("CMP", "[" + indices.getIexpression1() + "]", "[" + indices.getIexpression() + "]");
+                                                        intermediateCode.crear_terceto(comparar, "_", "_");
+                                                        indices.setIcomparation(intermediateCode.cantidad() );
+                                                        pila.push(indices.getIcomparation() - 1);
                                                  :};
 
 comparator ::= LESS_THAN {: System.out.println("<");
+                            comparar = "BGE"; 
                             //intermediateCode.crear_terceto("BGE", "_" , "_");
                             //pila.push(intermediateCode.cantidad());
                           :};
-comparator ::= GREATER_THAN {: System.out.println(">"); :};
-comparator ::= EQUAL {: System.out.println("=="); :};
-comparator ::= NOT_EQUAL {: System.out.println("!="); :};
-comparator ::= LESS_THAN_EQUAL {: System.out.println("<="); :};
-comparator ::= GREATER_THAN_EQUAL {: System.out.println(">="); :};
+comparator ::= GREATER_THAN {: System.out.println(">"); comparar = "BLE"; :};
+comparator ::= EQUAL {: System.out.println("=="); comparar = "BNE"; :};
+comparator ::= NOT_EQUAL {: System.out.println("!="); comparar = "BE"; :};
+comparator ::= LESS_THAN_EQUAL {: System.out.println("<="); comparar = "BGT"; :};
+comparator ::= GREATER_THAN_EQUAL {: System.out.println(">="); comparar = "BLT"; :};
 
 assignment ::= IDENTIFIER:id {: System.out.println("Id: " + id + " Tipo de dato: " + simbolTable.getDataType(id.toString()));
                                 if ( !( (listStrings != null && listStrings.contains(id)) ||

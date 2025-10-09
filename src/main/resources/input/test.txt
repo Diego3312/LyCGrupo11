@@ -12,67 +12,18 @@ init {
 a := 1
 b := 3
 
-#+Esto es un comentario+#
-while (a > b)
-{
-    write("a es mayor que b")
-    a := a + 1
-}
-
-if (a > b)
-{
-    write("a es mayor que b")
-    if ( a > b){
-        write("entro")
+if (a > b){
+    if ( a == b){
+        a := b
+    }else{
+        b := a
+    }
+}else{
+    if (e < f){
+        a := e
+    }else{
+        e := e
     }
 }
-else
-{
-    write("a es menor o igual que b")
-}
 
-a := 99999.99
-a := 99.
-a := .9999
-
-str4 := "@sdADaSjfla%dfg"
-str4 := "asldk  fh sjf"
-
-#+ Esto es un comentario +#
-
-str1 := "hola mundo"
-read(a)
-write(a)
-write("Adios mundo cruel")
-
-d := 1
-e := 1
-g := 2
-
-if (d > e AND g > e)
-{
-    write("if 1")
-}
-
-d := 1
-b := 1
-g := 2
-
-if (d > b OR g > b)
-{
-    write("if 2")
-}
-
-f := 1
-g := 1
-g := 2
-
-if (not d > b)
-{
-    write("if 3")
-}
-
-y := equalExpressions(d + b, 5, b * 2, 3 + 2, d + b) 
-y := equalExpressions(0, 5, d + b) 
-
-fecha := convDate(21-08-2025)
+b := b

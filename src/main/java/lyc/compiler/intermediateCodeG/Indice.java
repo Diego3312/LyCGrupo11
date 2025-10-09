@@ -10,9 +10,11 @@ public class Indice {
                     Iescribir,
                     Ileer,
                     Iexpression,
+                    Iexpression1,
                     Iterm,
                     Ifactor,
                     Icondition,
+                    Icomparation,
                     Icomparator,
                     Iinitializacion,
                     Ideclaration_block,
@@ -24,6 +26,10 @@ public class Indice {
                     Ilistado,
                     Iequal_expression,
                     Ilista_expresiones;
+
+    public Integer getIprogram() {
+        return Iprogram;
+    }
 
     public Indice() {
     }
@@ -202,6 +208,22 @@ public class Indice {
 
     public void setIlista_expresiones(Integer Ilista_expresiones) {
         this.Ilista_expresiones = Ilista_expresiones;
+    }
+
+    public void setIexpression1(Integer Iexpression1) {
+        this.Iexpression1 = Iexpression1;
+    }
+
+    public Integer getIexpression1() {
+        return Iexpression1;
+    }
+
+    public Integer getIcomparation() {
+        return Icomparation;
+    }
+
+    public void setIcomparation(Integer Icomparation) {
+        this.Icomparation = Icomparation;
     }
     
 }

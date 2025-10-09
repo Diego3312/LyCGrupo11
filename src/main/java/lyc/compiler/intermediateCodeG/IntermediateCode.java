@@ -35,9 +35,9 @@ public class IntermediateCode {
         return tercetos.size();
     }
 
-    public void modificar_terceto(Integer indice, String t3){
+    public void modificar_terceto(Integer indice, String t2){
         Terceto terceto = tercetos.get(indice);
-        terceto.setT3(t3);
+        terceto.setT2(t2);
         tercetos.set(indice, terceto);
     }
 
