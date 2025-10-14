@@ -29,7 +29,9 @@ action code
     public Stack<Integer> pila = new Stack();
     public String comparar;
     public int cant_comparar = 0;
+    public int cant_comparar_or = 0;
     public Stack<Integer> comparaciones = new Stack();
+    public Stack<Integer> comparacionesOr = new Stack();
 :}
 
 // Terminals
@@ -92,6 +94,10 @@ non terminal expression;
 non terminal term;
 non terminal factor;
 non terminal condition;
+non terminal condition_or;
+non terminal condition_and;
+non terminal condition_not;
+non terminal condition_relational;
 non terminal comparation;
 non terminal comparator;
 non terminal initialization;
@@ -121,7 +127,13 @@ sentence ::= escribir {: System.out.println("Sentence write"); :};
 sentence ::= leer {: System.out.println("Sentence read"); :};
 sentence ::= initialization {: System.out.println("Sentence inicializacion"); :};
 
-selection ::= IF OPEN_BRACKET {:cant_comparar = 0;:}condition CLOSE_BRACKET {:comparaciones.push(cant_comparar);:} body_selection;
+selection ::= IF OPEN_BRACKET {:cant_comparar = 0;:} condition CLOSE_BRACKET {: comparaciones.push(cant_comparar);
+                                                                                int completar = intermediateCode.cantidad();
+                                                                                System.out.println("Pila Or: " + comparacionesOr);
+                                                                                while(!comparacionesOr.empty()){
+                                                                                   intermediateCode.modificar_terceto(comparacionesOr.pop(), "[" + String.valueOf(intermediateCode.cantidad()+1) + "]");
+                                                                                }:} 
+              body_selection;
 
 body_selection ::= OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("if solo \n pila: " + pila);
                                                                                                       int completar = intermediateCode.cantidad() + 1;
@@ -139,26 +151,30 @@ body_selection ::= OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.pr
                                                                 :}
                    ELSE {:intermediateCode.crear_terceto("JMP", "_", "_"); pila.push(intermediateCode.cantidad() - 1);:} OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("Else"); intermediateCode.modificar_terceto(pila.pop(), "[" + String.valueOf(intermediateCode.cantidad() + 1) + "]" );:};
 
-condition ::= comparation {: System.out.println("Condition "); cant_comparar++; :};
-condition ::= condition AND comparation {: System.out.println("Condition AND "); cant_comparar++; :};
-condition ::= condition OR comparation {: System.out.println("Condition OR "); :};
-condition ::= NOT comparation {: System.out.println("Condition NOT "); :};
+condition ::= condition_or;
+
+condition_or ::= condition_or {:intermediateCode.negar_comparacion_terceto(intermediateCode.cantidad()-1);comparacionesOr.push(pila.pop()); cant_comparar--;:} OR condition_and;
+condition_or ::= condition_and;
+
+condition_and ::= condition_and AND condition_not;
+condition_and ::= condition_not;
+
+condition_not ::= NOT condition_not {:intermediateCode.negar_comparacion_terceto(intermediateCode.cantidad()-1);:};
+condition_not ::= condition_relational;
+
+condition_relational ::=  expression {:indices.setIexpression1(indices.getIexpression());:} 
+                          comparator expression {:
+                                                  intermediateCode.crear_terceto("CMP", "[" + indices.getIexpression1() + "]", "[" + indices.getIexpression() + "]");
+                                                  intermediateCode.crear_terceto(comparar, "_", "_");
+                                                  indices.setIcomparation(intermediateCode.cantidad());
+                                                  pila.push(indices.getIcomparation() - 1);
+                                                  cant_comparar++;
+                                                  System.out.println("Pila: " + pila);
+                                                :};
+//condition_relational ::= OPEN_BRACKET condition CLOSE_BRACKET;
 
 
-comparation ::= expression {://intermediateCode.crear_terceto("CMP", "[" + indices.getIexpression() + "]", "_");
-                             indices.setIexpression1(indices.getIexpression()); 
-                            :} comparator expression {: System.out.println("Comparation"); 
-                                                        intermediateCode.crear_terceto("CMP", "[" + indices.getIexpression1() + "]", "[" + indices.getIexpression() + "]");
-                                                        intermediateCode.crear_terceto(comparar, "_", "_");
-                                                        indices.setIcomparation(intermediateCode.cantidad() );
-                                                        pila.push(indices.getIcomparation() - 1);
-                                                 :};
-
-comparator ::= LESS_THAN {: System.out.println("<");
-                            comparar = "BGE"; 
-                            //intermediateCode.crear_terceto("BGE", "_" , "_");
-                            //pila.push(intermediateCode.cantidad());
-                          :};
+comparator ::= LESS_THAN {: System.out.println("<"); comparar = "BGE"; :};
 comparator ::= GREATER_THAN {: System.out.println(">"); comparar = "BLE"; :};
 comparator ::= EQUAL {: System.out.println("=="); comparar = "BNE"; :};
 comparator ::= NOT_EQUAL {: System.out.println("!="); comparar = "BE"; :};

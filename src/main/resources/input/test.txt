@@ -12,18 +12,10 @@ init {
 a := 1
 b := 3
 
-if (a > b){
-    if ( a == b){
-        a := b
-    }else{
-        b := a
-    }
+if (a > b OR a == b AND a == d){
+    b := a
 }else{
-    if (e < f){
-        a := e
-    }else{
-        e := e
-    }
+    d := e
 }
 
 b := b

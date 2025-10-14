@@ -41,6 +41,19 @@ public class IntermediateCode {
         tercetos.set(indice, terceto);
     }
 
+    public void negar_comparacion_terceto(Integer indice){
+        Terceto terceto = tercetos.get(indice);
+        switch (terceto.getT1()) {
+            case "BE" -> terceto.setT1("BNE");
+            case "BNE" -> terceto.setT1("BE");
+            case "BLT" -> terceto.setT1("BGE");
+            case "BLE" -> terceto.setT1("BGT");
+            case "BGT" -> terceto.setT1("BLE");
+            case "BGE" -> terceto.setT1("BLT");
+        }
+        tercetos.set(indice, terceto);
+    }
+
     @Override
     public String toString(){
         Integer count = 1;
