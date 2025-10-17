@@ -128,7 +128,6 @@ sentence ::= leer {: System.out.println("Sentence read"); :};
 sentence ::= initialization {: System.out.println("Sentence inicializacion"); :};
 
 selection ::= IF OPEN_BRACKET {:cant_comparar = 0;:} condition CLOSE_BRACKET {: comparaciones.push(cant_comparar);
-                                                                                int completar = intermediateCode.cantidad();
                                                                                 System.out.println("Pila Or: " + comparacionesOr);
                                                                                 while(!comparacionesOr.empty()){
                                                                                    intermediateCode.modificar_terceto(comparacionesOr.pop(), "[" + String.valueOf(intermediateCode.cantidad()+1) + "]");
@@ -212,7 +211,21 @@ object ::= CONVDATE:date {: System.out.println("convDate: " + date);
 lista_expresiones ::= lista_expresiones COMA expression;
 lista_expresiones ::= expression;
 
-iteration ::= WHILE OPEN_BRACKET condition CLOSE_BRACKET OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("While"); :};
+iteration ::= WHILE {:intermediateCode.crear_terceto("ETQ", " ", " " );comparaciones.push(-1);pila.push(intermediateCode.cantidad()); cant_comparar = 0;:} 
+              OPEN_BRACKET condition CLOSE_BRACKET {: comparaciones.push(cant_comparar);
+                                                      System.out.println("Pila Or: " + comparacionesOr);
+                                                      while(!comparacionesOr.empty()){
+                                                      intermediateCode.modificar_terceto(comparacionesOr.pop(), "[" + String.valueOf(intermediateCode.cantidad()+1) + "]");
+                                                    }:} 
+              OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("While");
+                                                              System.out.println("if solo \n pila: " + pila);
+                                                              int completar = intermediateCode.cantidad() + 2;
+                                                              System.out.println("salto: " + completar + " cantidad: " + comparaciones.peek());
+                                                              for (int i = comparaciones.pop(); i >  0; i--){
+                                                                intermediateCode.modificar_terceto(pila.pop(), "[" + String.valueOf(completar) + "]");
+                                                              }
+                                                              intermediateCode.crear_terceto("JMP", "[" + String.valueOf(pila.pop()) + "]", " ");
+                                                            :};
 
 escribir ::= WRITE OPEN_BRACKET STRING_CONSTANT:str CLOSE_BRACKET{: System.out.println("Write " + str); :};
 escribir ::= WRITE OPEN_BRACKET IDENTIFIER:id CLOSE_BRACKET{: System.out.println("Write " + id); :};
