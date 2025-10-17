@@ -1,0 +1,12 @@
+init {
+    a, b : Float
+    d, e, f, g : Int
+    str1, str2, str3, str4 : String
+    fecha : DateConverted 
+    y : Boolean
+    c, float1, float2 : Float
+    d1, e1, f1, g1 : Int
+    str5, str6, str7, str8 : String
+}
+
+y := equalExpressions(0, 5, d + b)

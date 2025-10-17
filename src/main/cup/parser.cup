@@ -1,0 +1,389 @@
+package lyc.compiler;
+
+import java_cup.runtime.*;
+import java.io.*;
+import java.util.*;
+import lyc.compiler.simbolsTable.SimbolTable;
+import lyc.compiler.simbolsTable.SimbolRow;
+import lyc.compiler.simbolsTable.DataType;
+import lyc.compiler.validations.Validate;
+
+//AGREGADO POR MI
+import lyc.compiler.files.IntermediateCodeGenerator;
+import lyc.compiler.files.Terceto;
+import lyc.compiler.files.Indice;
+
+class Parser;
+
+action code
+{:
+    
+    public SimbolTable simbolTable = SimbolTable.getSingletonInstance();
+    public ArrayList<String> identifiersList = new ArrayList();
+    public ArrayList<String> listAux = new ArrayList<String>();
+    public ArrayList<String> listStrings;
+    public ArrayList<String> listInt;
+    public ArrayList<String> listFloat;
+    public ArrayList<String> listBoolean;
+    public ArrayList<String> listDateConverted;
+    public DataType type;
+
+    //AGREGADO POR MI
+    public Stack<Integer> pilaTercetoIf = new Stack<Integer>();
+    public IntermediateCodeGenerator intermediateCodeGenerator = IntermediateCodeGenerator.getSingletonInstance();
+    public class ListasCaminosTrueFalse {public ArrayList<Integer> listaVerdaderos = new ArrayList<Integer>(), listaFalsos = new ArrayList<Integer>();}
+    public Indice indice = new Indice();
+    public int expTemp;
+    public int loop;
+    public ArrayList<Integer>lEqExp = new ArrayList<Integer>();
+    public ArrayList<Integer> lEnd = new ArrayList<Integer>();
+:}
+
+// Terminals
+terminal WHILE;
+terminal WRITE;
+terminal IF;
+terminal ELSE;
+terminal INIT;
+terminal READ;
+terminal CONVDATE;
+terminal EQUALEXP;
+terminal ASSIG;
+terminal PLUS;
+terminal SUB;
+terminal MULT;
+terminal DIV;
+terminal OPEN_BRACKET;
+terminal CLOSE_BRACKET;
+terminal INTEGER_CONSTANT;
+terminal IDENTIFIER;
+terminal CHARACTER_CONSTANT;
+terminal STRING_CONSTANT;
+terminal FLOAT_CONSTANT;
+terminal OPEN_CURLY_BRACKET;
+terminal CLOSE_CURLY_BRACKET;
+terminal OPEN_SQUARE_BRACKET;
+terminal CLOSE_SQUARE_BRACKET;
+terminal DOT;
+terminal DOS_PUNTOS;
+terminal COMA;
+terminal SEMI_COLON;
+terminal LESS_THAN;
+terminal GREATER_THAN;
+terminal EQUAL;
+terminal NOT_EQUAL;
+terminal LESS_THAN_EQUAL;
+terminal GREATER_THAN_EQUAL;
+terminal AND;
+terminal OR;
+terminal NOT;
+terminal QUOT;
+terminal SINGLE_QUOT;
+terminal INT;
+terminal FLOAT;
+terminal STRING;
+terminal BOOLEAN;
+terminal DATECONVERTED;
+terminal IFX;
+
+// Non Terminals
+//non terminal code;
+non terminal program;
+non terminal block;
+non terminal sentence;
+non terminal assignment;
+non terminal selection;
+non terminal iteration;
+non terminal escribir;
+non terminal leer;
+non terminal expression;
+non terminal term;
+non terminal factor;
+non terminal ListasCaminosTrueFalse condition;
+non terminal ListasCaminosTrueFalse comparation;
+non terminal String comparator;
+non terminal initialization;
+non terminal declaration_block;
+non terminal declaration_var;
+non terminal list_identifiers;
+non terminal type;
+non terminal object;
+non terminal listar;
+non terminal listado;
+non terminal equal_expression;
+non terminal lista_expresiones;
+
+//AGREGADO POR MI
+non terminal ListasCaminosTrueFalse or_condition;
+non terminal ListasCaminosTrueFalse and_condition;
+non terminal ListasCaminosTrueFalse not_condition;
+non terminal ListasCaminosTrueFalse if_head;
+
+
+precedence nonassoc IFX;
+precedence right ELSE;
+
+// Start Symbol Definition
+
+start with program;
+program ::= block {: System.out.println("End"); :};
+
+block ::= sentence ;
+block ::= block sentence ;
+
+sentence ::= assignment {: System.out.println("Sentence asignacion"); :};
+sentence ::= selection {: System.out.println("Sentence seleccion"); :};
+sentence ::= iteration {: System.out.println("Sentence while"); :};
+sentence ::= escribir {: System.out.println("Sentence write"); :};
+sentence ::= leer {: System.out.println("Sentence read"); :};
+sentence ::= initialization {: System.out.println("Sentence inicializacion"); :};
+
+/* if sin else */
+selection ::=
+    if_head:h
+    OPEN_CURLY_BRACKET
+    block
+    CLOSE_CURLY_BRACKET
+      {:
+         // falsos → salida del if
+         IntermediateCodeGenerator.completarSaltos(h.listaFalsos, Terceto.getSiguiente());
+      :}
+    %prec IFX
+;
+
+/* if con else */
+selection ::=
+    if_head:h
+    OPEN_CURLY_BRACKET
+    block
+    CLOSE_CURLY_BRACKET
+      {:
+         // salto para salir del THEN
+         intermediateCodeGenerator.getListaTercetos().add(new Terceto("JMP","-","-"));
+         pilaTercetoIf.push(Terceto.getSiguiente() - 1);
+
+         // falsos de la condición → inicio del ELSE
+         IntermediateCodeGenerator.completarSaltos(h.listaFalsos, Terceto.getSiguiente());
+      :}
+    ELSE
+    OPEN_CURLY_BRACKET
+    block
+    CLOSE_CURLY_BRACKET
+      {:
+         // completar el salto que sale del THEN
+         Integer idx = pilaTercetoIf.pop();
+         java.util.ArrayList<Integer> out = new java.util.ArrayList<>();
+         out.add(idx);
+         IntermediateCodeGenerator.completarSaltos(out, Terceto.getSiguiente());
+      :}
+;
+
+if_head ::=
+    IF OPEN_BRACKET condition:c CLOSE_BRACKET
+      {:
+         // Completa los verdaderos (p. ej., JMPs del OR) al entrar al THEN
+         IntermediateCodeGenerator.completarSaltos(c.listaVerdaderos, Terceto.getSiguiente());
+         RESULT = c; // pasamos la info de la condición
+      :}
+;
+
+
+
+
+//condition ::= comparation {: System.out.println("Condition "); :};
+//condition ::= condition AND comparation {: System.out.println("Condition AND "); :};
+//condition ::= condition OR comparation {: System.out.println("Condition OR "); :};
+//condition ::= NOT comparation {: System.out.println("Condition NOT "); :};
+
+//AGREGADO POR MI
+condition ::= or_condition:o {:RESULT = o;:};
+
+or_condition ::= and_condition:a {:RESULT = a;:};
+or_condition ::= or_condition:o
+      {:
+        // 1) Si A es verdadero, no quiero evaluar B → emito salto al THEN
+        intermediateCodeGenerator.getListaTercetos().add(new Terceto("JMP","-","-"));
+        int idxJmp = Terceto.getSiguiente() - 1;
+
+        // 2) Short-circuit: falsos de A → inicio de B
+        int inicioB = Terceto.getSiguiente();
+        IntermediateCodeGenerator.completarSaltos(o.listaFalsos, inicioB);
+
+        // 3) Guardo lo que traigo de A en un tmp parcial
+        ListasCaminosTrueFalse tmp = new ListasCaminosTrueFalse();
+        tmp.listaVerdaderos.addAll(o.listaVerdaderos);
+        tmp.listaVerdaderos.add(idxJmp); // el JMP recién emitido se suma a Verdaderos de A
+        // Ojo: NO seteamos falsos aún; se definirán con los falsos de B
+        RESULT = tmp;
+      :}
+    OR and_condition:b
+      {:
+        // 4) Combinar con B: Verdaderos = A.V ∪ B.V ; Falsos = B.F
+        ListasCaminosTrueFalse prev = (ListasCaminosTrueFalse) RESULT;
+        ListasCaminosTrueFalse l = new ListasCaminosTrueFalse();
+
+        l.listaVerdaderos.addAll(prev.listaVerdaderos);
+        l.listaVerdaderos.addAll(b.listaVerdaderos);
+
+        l.listaFalsos.addAll(b.listaFalsos);
+
+        RESULT = l;
+      :}
+  ;
+
+
+and_condition ::= not_condition:n {: RESULT = n;:};
+and_condition ::= and_condition:a AND not_condition:n {:ListasCaminosTrueFalse ltf = new ListasCaminosTrueFalse();
+ltf.listaFalsos.addAll(a.listaFalsos); ltf.listaFalsos.addAll(n.listaFalsos); 
+RESULT = ltf; :};
+
+
+not_condition ::= comparation:c {:RESULT = c; :}; //'c' sería la variable 'ltf'
+not_condition ::= NOT comparation:c {: ListasCaminosTrueFalse ltf = new ListasCaminosTrueFalse();  ltf.listaFalsos = new ArrayList<Integer>(c.listaVerdaderos); ltf.listaVerdaderos = new ArrayList<Integer>(c.listaFalsos);
+RESULT = ltf;:};
+
+
+comparation ::= expression {:expTemp = indice.getExpresionIndice();:} comparator:c {:System.out.println("valor de op:" + c);:} expression 
+{: System.out.println("Comparation"); 
+intermediateCodeGenerator.getListaTercetos().add(new Terceto("CMP",String.valueOf(expTemp),String.valueOf(indice.getExpresionIndice())));
+intermediateCodeGenerator.getListaTercetos().add(new Terceto(c,"-","-"));
+ListasCaminosTrueFalse ltf = new ListasCaminosTrueFalse(); 
+ltf.listaFalsos.add(Terceto.getSiguiente() - 1); RESULT = ltf;:};
+
+comparator ::= LESS_THAN {: System.out.println("<");RESULT = "BGE";:};
+comparator ::= GREATER_THAN {: System.out.println(">"); RESULT = "BLE";:};
+comparator ::= EQUAL {: System.out.println("=="); RESULT = "BNE";:};
+comparator ::= NOT_EQUAL {: System.out.println("!="); RESULT = "BEQ";:};
+comparator ::= LESS_THAN_EQUAL {: System.out.println("<="); RESULT = "BGT";:};
+comparator ::= GREATER_THAN_EQUAL {: System.out.println(">="); RESULT = "BLT";:};
+
+assignment ::= IDENTIFIER:id {: System.out.println("Id: " + id + " Tipo de dato: " + simbolTable.getDataType(id.toString()));
+                                if ( !( (listStrings != null && listStrings.contains(id)) ||
+                                        (listInt != null && listInt.contains(id)) ||
+                                        (listFloat != null && listFloat.contains(id)) ||
+                                        (listBoolean != null && listBoolean.contains(id)) ||
+                                        (listDateConverted != null && listDateConverted.contains(id)) )){
+                                    System.out.println("ERROR: La variable no fue declarada");
+                                    System.exit(-1);
+                                }
+                                System.out.println("= " + type);
+                             :}
+               ASSIG object {:  System.out.println("Assignment");
+                                Validate.validateTypes(simbolTable.getDataType(id.toString()), type.toString());
+                            intermediateCodeGenerator.getListaTercetos().add(new Terceto(":=",String.valueOf(id),String.valueOf(indice.getObjectIndice())));:};
+
+object ::= expression {:type = DataType.INT; indice.setObjectIndice(indice.getExpresionIndice());:};
+object ::= STRING_CONSTANT:stringConstant {: System.out.println("String_constant: " + stringConstant); 
+                                  final String str = stringConstant.toString().replace("\"", ""); 
+                                  simbolTable.add("_" + str, DataType.CTE_STRING, str.toString(), str.length()); 
+                                  type = DataType.STRING;
+                                  intermediateCodeGenerator.getListaTercetos().add(new Terceto(String.valueOf(stringConstant),"-","-"));indice.setObjectIndice(Terceto.getSiguiente() - 1);:};
+object ::= EQUALEXP OPEN_BRACKET {:lEqExp.clear(); lEnd.clear();:} lista_expresiones CLOSE_BRACKET {:IntermediateCodeGenerator.completarSaltos(lEnd,Terceto.getSiguiente()); 
+intermediateCodeGenerator.getListaTercetos().add(new Terceto("valor","-","-")); indice.setObjectIndice(Terceto.getSiguiente() - 1); type = DataType.BOOLEAN; :};
+object ::= CONVDATE:date {: System.out.println("convDate: " + date);
+                            type = DataType.DATECONVERTED; 
+                         :};
+lista_expresiones ::= lista_expresiones COMA expression {:
+for(Integer e: lEqExp){
+intermediateCodeGenerator.getListaTercetos().add(new Terceto("CMP",String.valueOf(e),String.valueOf(indice.getExpresionIndice())));
+intermediateCodeGenerator.getListaTercetos().add(new Terceto("BNE",String.valueOf(Terceto.getSiguiente() + 3),"-"));
+intermediateCodeGenerator.getListaTercetos().add(new Terceto(":=","valor","true"));
+intermediateCodeGenerator.getListaTercetos().add(new Terceto("BI","-","-"));
+lEnd.add(Terceto.getSiguiente() - 1);
+}lEqExp.add(indice.getExpresionIndice());
+:};
+lista_expresiones ::= expression {:lEqExp.add(indice.getExpresionIndice()); intermediateCodeGenerator.getListaTercetos().add(new Terceto(":=","valor","false"));:};
+
+iteration ::= WHILE OPEN_BRACKET {:loop = Terceto.getSiguiente();:} condition:c CLOSE_BRACKET {:IntermediateCodeGenerator.completarSaltos(c.listaVerdaderos,Terceto.getSiguiente());:}
+ OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: intermediateCodeGenerator.getListaTercetos().add(new Terceto("BI",String.valueOf(loop),"-")); IntermediateCodeGenerator.completarSaltos(c.listaFalsos,Terceto.getSiguiente()); System.out.println("While"); :};
+
+escribir ::= WRITE OPEN_BRACKET STRING_CONSTANT:str CLOSE_BRACKET{: System.out.println("Write " + str); :};
+escribir ::= WRITE OPEN_BRACKET IDENTIFIER:id CLOSE_BRACKET{: System.out.println("Write " + id); :};
+
+leer ::= READ OPEN_BRACKET IDENTIFIER:id CLOSE_BRACKET{: System.out.println("Read " + id); :};
+
+
+initialization ::= INIT OPEN_CURLY_BRACKET declaration_block CLOSE_CURLY_BRACKET {: System.out.println("Initialization"); :};
+declaration_block ::= declaration_var {: System.out.println("Declaration"); :};
+declaration_block ::= declaration_block declaration_var {: System.out.println("Declaration"); :};
+declaration_var ::= list_identifiers DOS_PUNTOS type {: System.out.println("Declaration con coma"); :};
+
+list_identifiers ::= IDENTIFIER:id {: System.out.println("Id: " + id); 
+                                      if (this.identifiersList.contains(id.toString())){
+                                        System.out.println("ERROR: La variable ya fue declarada");
+                                        System.exit(-1);
+                                      }
+                                      this.identifiersList.add(id.toString());
+                                      listAux.add(id.toString()); :};
+list_identifiers ::= list_identifiers COMA IDENTIFIER:id {: System.out.println("lista Ids: " + id); 
+                                                            if (this.identifiersList.contains(id.toString())){
+                                                                System.out.println("ERROR: La variable ya fue declarada");
+                                                                System.exit(-1);
+                                                            }
+                                                            this.identifiersList.add(id.toString());
+                                                            listAux.add(id.toString()); :};
+
+type ::= INT {: System.out.println("Integer");
+                simbolTable.addIdentifiers(this.identifiersList, DataType.INT);
+                if (listInt == null )
+                    listInt = new ArrayList<String>(listAux);
+                listAux.clear(); :};
+type ::= FLOAT {: System.out.println("Float"); 
+                  simbolTable.addIdentifiers(this.identifiersList, DataType.FLOAT);
+                  if (listFloat == null )
+                    listFloat = new ArrayList<String>(listAux);
+                  listAux.clear(); :};
+type ::= STRING {: System.out.println("String"); 
+                   simbolTable.addIdentifiers(this.identifiersList, DataType.STRING);
+                   if (listStrings == null )
+                    listStrings = new ArrayList<String>(listAux);
+                   else
+                    listStrings.addAll(listAux); 
+                   listAux.clear(); :};
+type ::= BOOLEAN {: System.out.println("Boolean"); 
+                    simbolTable.addIdentifiers(this.identifiersList, DataType.BOOLEAN);
+                    if (listBoolean == null )
+                        listBoolean = new ArrayList<String>(listAux);
+                    listAux.clear(); :};
+type ::= DATECONVERTED {: System.out.println("DateConverted");  
+                          simbolTable.addIdentifiers(this.identifiersList, DataType.DATECONVERTED);
+                          if (listDateConverted == null )
+                            listDateConverted = new ArrayList<String>(listAux);
+                          listAux.clear(); :};
+
+expression ::= expression PLUS term {: System.out.println("+"); 
+intermediateCodeGenerator.getListaTercetos().add(new Terceto("+",String.valueOf(indice.getExpresionIndice()),String.valueOf(indice.getTerminoIndice()))); 
+indice.setExpresionIndice(Terceto.getSiguiente() - 1);:};
+expression ::= expression SUB term {: System.out.println("-"); 
+intermediateCodeGenerator.getListaTercetos().add(new Terceto("-",String.valueOf(indice.getExpresionIndice()),String.valueOf(indice.getTerminoIndice()))); 
+indice.setExpresionIndice(Terceto.getSiguiente() - 1);:};
+expression ::= term {: System.out.println("Expression = Term"); indice.setExpresionIndice(indice.getTerminoIndice());:};
+
+term ::= term MULT factor {: System.out.println("*"); 
+intermediateCodeGenerator.getListaTercetos().add(new Terceto("*",String.valueOf(indice.getTerminoIndice()),String.valueOf(indice.getFactorIndice()))); 
+indice.setTerminoIndice(Terceto.getSiguiente() - 1);:};
+term ::= term DIV factor {: System.out.println("/"); 
+intermediateCodeGenerator.getListaTercetos().add(new Terceto("/",String.valueOf(indice.getTerminoIndice()),String.valueOf(indice.getFactorIndice()))); 
+indice.setTerminoIndice(Terceto.getSiguiente() - 1);:};
+term ::= factor {: System.out.println("Term = factor"); indice.setTerminoIndice(indice.getFactorIndice());:};
+
+factor ::= IDENTIFIER:id  {: System.out.println("Id: " + id); 
+                             if ( (listStrings != null && listStrings.contains(id)) || (listBoolean != null && listBoolean.contains(id)) || (listDateConverted != null && listDateConverted.contains(id))){
+                                    System.out.println("ERROR: Debe ser tipo de dato Int o Float");
+                                    System.exit(-1);
+                             }
+                             if ( !(    (listInt != null && listInt.contains(id)) ||
+                                        (listFloat != null && listFloat.contains(id))  )){
+                                    System.out.println("ERROR: La variable no fue declarada");
+                                    System.exit(-1);
+                                }
+                          intermediateCodeGenerator.getListaTercetos().add(new Terceto(String.valueOf(id),"-","-")); indice.setFactorIndice(Terceto.getSiguiente() - 1);:};
+factor ::= INTEGER_CONSTANT:intConstant {: System.out.println("Int Constant: " + intConstant ); 
+                                           simbolTable.add("_" + intConstant, DataType.CTE_INT, intConstant.toString(), null); 
+                                           intermediateCodeGenerator.getListaTercetos().add(new Terceto(String.valueOf(intConstant),"-","-")); indice.setFactorIndice(Terceto.getSiguiente() - 1);:};
+factor ::= FLOAT_CONSTANT:floatConstant {: System.out.println("Float Constant: " + floatConstant ); 
+                                           simbolTable.add("_" + floatConstant, DataType.CTE_FLOAT, floatConstant.toString(), null);
+                                           intermediateCodeGenerator.getListaTercetos().add(new Terceto(String.valueOf(floatConstant),"-","-")); indice.setFactorIndice(Terceto.getSiguiente() - 1);:};
+factor ::= OPEN_BRACKET expression CLOSE_BRACKET {: System.out.println("Factor = (Expression)"); indice.setFactorIndice(indice.getExpresionIndice());:};
+
+
