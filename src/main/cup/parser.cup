@@ -32,6 +32,10 @@ action code
     public int cant_comparar_or = 0;
     public Stack<Integer> comparaciones = new Stack();
     public Stack<Integer> comparacionesOr = new Stack();
+    public String funcion_asignando = " ";
+  // equalExpressions
+    public ArrayList<Integer> indiceExpresiones;
+  //-----------------
 :}
 
 // Terminals
@@ -42,6 +46,7 @@ terminal ELSE;
 terminal INIT;
 terminal READ;
 terminal CONVDATE;
+terminal PARM_CONVDATE;
 terminal EQUALEXP;
 terminal ASSIG;
 terminal PLUS;
@@ -170,8 +175,6 @@ condition_relational ::=  expression {:indices.setIexpression1(indices.getIexpre
                                                   cant_comparar++;
                                                   System.out.println("Pila: " + pila);
                                                 :};
-//condition_relational ::= OPEN_BRACKET condition CLOSE_BRACKET;
-
 
 comparator ::= LESS_THAN {: System.out.println("<"); comparar = "BGE"; :};
 comparator ::= GREATER_THAN {: System.out.println(">"); comparar = "BLE"; :};
@@ -193,23 +196,55 @@ assignment ::= IDENTIFIER:id {: System.out.println("Id: " + id + " Tipo de dato:
                              :}
                ASSIG object {:  System.out.println("Assignment");
                                 Validate.validateTypes(simbolTable.getDataType(id.toString()), type.toString());
-                                intermediateCode.crear_terceto(":=", id.toString(), "[" + indices.getIobject() + "]" );
+                                if(funcion_asignando == "equal_expression" || funcion_asignando == "conv_date")
+                                  intermediateCode.crear_terceto(":=", id.toString(), "@retorno" );
+                                else
+                                  intermediateCode.crear_terceto(":=", id.toString(), "[" + indices.getIobject() + "]" );
                             :};
 
 object ::= expression {:type = DataType.INT;
                         indices.setIobject(indices.getIexpression());
+                        funcion_asignando = "expresion";
                       :};
 object ::= STRING_CONSTANT:stringConstant {: System.out.println("String_constant: " + stringConstant); 
                                   final String str = stringConstant.toString().replace("\"", ""); 
                                   simbolTable.add("_" + str, DataType.CTE_STRING, str.toString(), str.length()); 
                                   type = DataType.STRING;
+                                  funcion_asignando = "cte_string";
                                   :};
-object ::= EQUALEXP OPEN_BRACKET lista_expresiones CLOSE_BRACKET {:type = DataType.BOOLEAN; :};
-object ::= CONVDATE:date {: System.out.println("convDate: " + date);
-                            type = DataType.DATECONVERTED; 
-                         :};
-lista_expresiones ::= lista_expresiones COMA expression;
-lista_expresiones ::= expression;
+object ::= EQUALEXP {:indiceExpresiones = new ArrayList(); intermediateCode.crear_terceto(":=", "@retorno", "false");:} 
+           OPEN_BRACKET lista_expresiones CLOSE_BRACKET {:type = DataType.BOOLEAN; 
+                                                          funcion_asignando = "equal_expression";
+                                                          for(int i = 1; i < indiceExpresiones.size() - 1; i++){
+                                                            for(int j = i + 1; j < indiceExpresiones.size(); j++){
+                                                              intermediateCode.crear_terceto("CMP","[" + indiceExpresiones.get(i).toString() + "]","[" + indiceExpresiones.get(j).toString() + "]");
+                                                              if (i == indiceExpresiones.size() - 2 && j == indiceExpresiones.size() - 1)
+                                                                intermediateCode.crear_terceto("BNE","_","_");
+                                                              else{
+                                                                pila.push(intermediateCode.cantidad());
+                                                                intermediateCode.crear_terceto("BE","_","_");
+                                                              }
+                                                            }  
+                                                          }
+                                                          intermediateCode.crear_terceto(":=","@retorno","true");
+                                                          while(!pila.empty()){
+                                                            intermediateCode.modificar_terceto(pila.pop(), "[" + String.valueOf(intermediateCode.cantidad()) + "]");
+                                                          }
+                                                          intermediateCode.modificar_terceto(intermediateCode.cantidad() - 2, "[" + String.valueOf(intermediateCode.cantidad() + 1) + "]");
+                                                        :};
+object ::= CONVDATE OPEN_BRACKET PARM_CONVDATE:str CLOSE_BRACKET {: System.out.println("convDate: " + str);
+                            type = DataType.DATECONVERTED;
+                            funcion_asignando = "conv_date";
+                            
+                            String aux = str.toString().substring(6) + str.toString().substring(3,5) + str.toString().substring(0,2);
+                            intermediateCode.crear_terceto(":=", "@retorno", aux);
+                          :};
+lista_expresiones ::= lista_expresiones COMA expression {:indiceExpresiones.add(indices.getIexpression());
+                                                          intermediateCode.crear_terceto("CMP","[" + indiceExpresiones.get(0).toString() + "]", "[" + indices.getIexpression().toString() + "]");
+                                                          pila.push(intermediateCode.cantidad());
+                                                          intermediateCode.crear_terceto("BE","_","_");    
+                                                        :};
+lista_expresiones ::= expression {:indiceExpresiones.add(indices.getIexpression());:};
 
 iteration ::= WHILE {:intermediateCode.crear_terceto("ETQ", " ", " " );comparaciones.push(-1);pila.push(intermediateCode.cantidad()); cant_comparar = 0;:} 
               OPEN_BRACKET condition CLOSE_BRACKET {: comparaciones.push(cant_comparar);
@@ -227,10 +262,26 @@ iteration ::= WHILE {:intermediateCode.crear_terceto("ETQ", " ", " " );comparaci
                                                               intermediateCode.crear_terceto("JMP", "[" + String.valueOf(pila.pop()) + "]", " ");
                                                             :};
 
-escribir ::= WRITE OPEN_BRACKET STRING_CONSTANT:str CLOSE_BRACKET{: System.out.println("Write " + str); :};
-escribir ::= WRITE OPEN_BRACKET IDENTIFIER:id CLOSE_BRACKET{: System.out.println("Write " + id); :};
+escribir ::= WRITE OPEN_BRACKET STRING_CONSTANT:str CLOSE_BRACKET{: System.out.println("Write " + str);
+                                                                    simbolTable.add("_" + str, DataType.CTE_STRING, str.toString(), null);
+                                                                    intermediateCode.crear_terceto("WRITE", str.toString(), "_");
+                                                                  :};
+escribir ::= WRITE OPEN_BRACKET IDENTIFIER:id CLOSE_BRACKET{: System.out.println("Write " + id);
+                                                              if (listStrings != null && !listStrings.contains(id.toString())){
+                                                                System.out.println("ERROR: La variable no fue declarada");
+                                                                System.exit(-1);
+                                                              } 
+                                                              intermediateCode.crear_terceto("WRITE", id.toString(), "_"); 
+                                                            :};
 
-leer ::= READ OPEN_BRACKET IDENTIFIER:id CLOSE_BRACKET{: System.out.println("Read " + id); :};
+leer ::= READ OPEN_BRACKET IDENTIFIER:id CLOSE_BRACKET{: System.out.println("Read " + id );
+                                                        System.out.println("Lista de string: " + listStrings.toString() );
+                                                        if (listStrings != null && !listStrings.contains(id.toString())){
+                                                          System.out.println("ERROR: La variable no fue declarada");
+                                                          System.exit(-1);
+                                                        }     
+                                                        intermediateCode.crear_terceto("READ", id.toString(), "_");  
+                                                       :};
 
 
 initialization ::= INIT OPEN_CURLY_BRACKET declaration_block CLOSE_CURLY_BRACKET {: System.out.println("Initialization"); :};
@@ -251,7 +302,8 @@ list_identifiers ::= list_identifiers COMA IDENTIFIER:id {: System.out.println("
                                                                 System.exit(-1);
                                                             }
                                                             this.identifiersList.add(id.toString());
-                                                            listAux.add(id.toString()); :};
+                                                            listAux.add(id.toString()); 
+                                                          :};
 
 type ::= INT {: System.out.println("Integer");
                 simbolTable.addIdentifiers(this.identifiersList, DataType.INT);

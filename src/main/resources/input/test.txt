@@ -9,13 +9,6 @@ init {
     str5, str6, str7, str8 : String
 }
 
-a := 1
-b := 3
-
-if (a > b OR a == b AND a == d){
-    b := a
-}else{
-    d := e
-}
-
-b := b
+read(str1)
+write("ewr")
+write(str2)
