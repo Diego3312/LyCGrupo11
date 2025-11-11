@@ -108,4 +108,8 @@ public Boolean isInTable(String nombre) {
             .findFirst()
             .orElse(null);
   }
+
+  public List<SimbolRow> getListaSimbolos() {
+    return this.simbols;
+  }
 }

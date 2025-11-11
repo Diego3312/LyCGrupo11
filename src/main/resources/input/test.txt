@@ -8,7 +8,20 @@ init {
     d1, e1, f1, g1 : Int
     str5, str6, str7, str8 : String
 }
+e := 3
+f := 3
+d := 2
+a := d + e / f
 
-read(str1)
-write("ewr")
-write(str2)
+if ( a > e){
+    if ( a == a){
+    a := e
+    }
+}
+
+b := a
+
+while ( b > a){
+    a := b
+}
+

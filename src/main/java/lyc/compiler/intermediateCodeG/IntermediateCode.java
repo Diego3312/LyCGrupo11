@@ -63,4 +63,8 @@ public class IntermediateCode {
         }
         return result;
     }
+
+    public ArrayList<Terceto> getListaTercetos(){
+        return this.tercetos;
+    }
 }

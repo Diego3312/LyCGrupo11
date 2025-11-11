@@ -57,4 +57,5 @@ public class SimbolRow {
     public void setLongitud(Integer longitud) {
         this.longitud = longitud;
     }
+
 }

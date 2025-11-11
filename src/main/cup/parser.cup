@@ -9,6 +9,7 @@ import lyc.compiler.simbolsTable.DataType;
 import lyc.compiler.validations.Validate;
 import lyc.compiler.intermediateCodeG.*;
 import lyc.compiler.files.IntermediateCodeGenerator;
+import lyc.compiler.asm.*;
 
 class Parser;
 
@@ -36,6 +37,20 @@ action code
   // equalExpressions
     public ArrayList<Integer> indiceExpresiones;
   //-----------------
+    public GestorAssembler gestorAssembler = new GestorAssembler();
+:}
+
+parser code
+{:
+    public ArrayList <Terceto> getListaTercetos() {
+            return action_obj.intermediateCode.getListaTercetos();
+        }
+    public List<SimbolRow> getListaSimbolos() {
+        return action_obj.simbolTable.getListaSimbolos();
+        }
+    public ArrayList<String> getInstrucciones(){
+            return action_obj.gestorAssembler.getListInst();
+        }
 :}
 
 // Terminals
@@ -120,7 +135,7 @@ non terminal body_selection;
 // Start Symbol Definition
 
 start with program;
-program ::= block {: System.out.println("End"); :};
+program ::= block {: System.out.println("End"); gestorAssembler.generarAssembler(getListaSimbolos(),getListaTercetos());:};
 
 block ::= sentence {: System.out.println("Block"); :};
 block ::= block sentence {: System.out.println("Blocks"); :};

@@ -36,5 +36,9 @@ public class Terceto {
         this.t3 = t3;
     }
 
-    
+
+    @Override
+    public String toString(){
+        return  this.t1 + "," + this.t2 + "," + this.t3;
+    }    
 }
