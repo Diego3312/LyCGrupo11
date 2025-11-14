@@ -31,11 +31,13 @@ action code
     public String comparar;
     public int cant_comparar = 0;
     public int cant_comparar_or = 0;
+    public int numEtiqueta = 0;
     public Stack<Integer> comparaciones = new Stack();
     public Stack<Integer> comparacionesOr = new Stack();
     public String funcion_asignando = " ";
   // equalExpressions
     public ArrayList<Integer> indiceExpresiones;
+    public int contAux;
   //-----------------
     public GestorAssembler gestorAssembler = new GestorAssembler();
 :}
@@ -136,6 +138,7 @@ non terminal body_selection;
 
 start with program;
 program ::= block {: System.out.println("End"); gestorAssembler.generarAssembler(getListaSimbolos(),getListaTercetos());:};
+//program ::= block {: System.out.println("End"); :};
 
 block ::= sentence {: System.out.println("Block"); :};
 block ::= block sentence {: System.out.println("Blocks"); :};
@@ -149,13 +152,20 @@ sentence ::= initialization {: System.out.println("Sentence inicializacion"); :}
 
 selection ::= IF OPEN_BRACKET {:cant_comparar = 0;:} condition CLOSE_BRACKET {: comparaciones.push(cant_comparar);
                                                                                 System.out.println("Pila Or: " + comparacionesOr);
+                                                                                if(!comparacionesOr.empty()){
+                                                                                  numEtiqueta++;
+                                                                                  intermediateCode.crear_terceto("ET_" + numEtiqueta,"_","_");
+                                                                                }
+                                                                                  
                                                                                 while(!comparacionesOr.empty()){
-                                                                                   intermediateCode.modificar_terceto(comparacionesOr.pop(), "[" + String.valueOf(intermediateCode.cantidad()+1) + "]");
+                                                                                   intermediateCode.modificar_terceto(comparacionesOr.pop(), "[" + String.valueOf(intermediateCode.cantidad()) + "]");
                                                                                 }:} 
               body_selection;
 
 body_selection ::= OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("if solo \n pila: " + pila);
                                                                                                       int completar = intermediateCode.cantidad() + 1;
+                                                                                                      numEtiqueta++;
+                                                                                                      intermediateCode.crear_terceto("ET_" + numEtiqueta, "_", "_");
                                                                                                       System.out.println("salto: " + completar + " cantidad: " + comparaciones.peek());
                                                                                                       for (int i = comparaciones.pop(); i >  0; i--){
                                                                                                         intermediateCode.modificar_terceto(pila.pop(), "[" + String.valueOf(completar) + "]");
@@ -168,7 +178,9 @@ body_selection ::= OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.pr
                                                                       intermediateCode.modificar_terceto(pila.pop(), "[" + String.valueOf(completar) + "]");
                                                                    }
                                                                 :}
-                   ELSE {:intermediateCode.crear_terceto("JMP", "_", "_"); pila.push(intermediateCode.cantidad() - 1);:} OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("Else"); intermediateCode.modificar_terceto(pila.pop(), "[" + String.valueOf(intermediateCode.cantidad() + 1) + "]" );:};
+                   ELSE {:intermediateCode.crear_terceto("JMP", "_", "_"); pila.push(intermediateCode.cantidad() - 1);
+                   numEtiqueta++; intermediateCode.crear_terceto("ET_" +  numEtiqueta,"_","_");
+                   :} OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("Else"); numEtiqueta++; intermediateCode.crear_terceto("ET_" +  numEtiqueta,"_","_"); intermediateCode.modificar_terceto(pila.pop(), "[" + String.valueOf(intermediateCode.cantidad()) + "]" );:};
 
 condition ::= condition_or;
 
@@ -181,7 +193,7 @@ condition_and ::= condition_not;
 condition_not ::= NOT condition_not {:intermediateCode.negar_comparacion_terceto(intermediateCode.cantidad()-1);:};
 condition_not ::= condition_relational;
 
-condition_relational ::=  expression {:indices.setIexpression1(indices.getIexpression());:} 
+condition_relational ::=  expression {:indices.setIexpression1(indices.getIexpression());:}
                           comparator expression {:
                                                   intermediateCode.crear_terceto("CMP", "[" + indices.getIexpression1() + "]", "[" + indices.getIexpression() + "]");
                                                   intermediateCode.crear_terceto(comparar, "_", "_");
@@ -212,7 +224,11 @@ assignment ::= IDENTIFIER:id {: System.out.println("Id: " + id + " Tipo de dato:
                ASSIG object {:  System.out.println("Assignment");
                                 Validate.validateTypes(simbolTable.getDataType(id.toString()), type.toString());
                                 if(funcion_asignando == "equal_expression" || funcion_asignando == "conv_date")
-                                  intermediateCode.crear_terceto(":=", id.toString(), "@retorno" );
+                                {
+                                    intermediateCode.crear_terceto("@retorno","_","_" );
+                                    intermediateCode.crear_terceto(":=", id.toString(), "[" + String.valueOf(intermediateCode.cantidad()) + "]" );
+                                }
+                                  
                                 else
                                   intermediateCode.crear_terceto(":=", id.toString(), "[" + indices.getIobject() + "]" );
                             :};
@@ -227,12 +243,16 @@ object ::= STRING_CONSTANT:stringConstant {: System.out.println("String_constant
                                   type = DataType.STRING;
                                   funcion_asignando = "cte_string";
                                   :};
-object ::= EQUALEXP {:indiceExpresiones = new ArrayList(); intermediateCode.crear_terceto(":=", "@retorno", "false");:} 
+object ::= EQUALEXP {:simbolTable.add("@retorno", DataType.BOOLEAN, "-", null);
+simbolTable.add("false",DataType.BOOLEAN,"0",null);simbolTable.add("true",DataType.BOOLEAN,"1",null);indiceExpresiones = new ArrayList(); 
+intermediateCode.crear_terceto("false", "_", "_");intermediateCode.crear_terceto(":=", "@retorno", "[" + String.valueOf(intermediateCode.cantidad())+ "]");:} 
            OPEN_BRACKET lista_expresiones CLOSE_BRACKET {:type = DataType.BOOLEAN; 
                                                           funcion_asignando = "equal_expression";
                                                           for(int i = 1; i < indiceExpresiones.size() - 1; i++){
                                                             for(int j = i + 1; j < indiceExpresiones.size(); j++){
-                                                              intermediateCode.crear_terceto("CMP","[" + indiceExpresiones.get(i).toString() + "]","[" + indiceExpresiones.get(j).toString() + "]");
+                                                              intermediateCode.crear_terceto("@auxEqExp" + i,"_","_");
+                                                              intermediateCode.crear_terceto("@auxEqExp" + j,"_","_");
+                                                              intermediateCode.crear_terceto("CMP","[" + String.valueOf(intermediateCode.cantidad() - 1) + "]","[" + String.valueOf(intermediateCode.cantidad()) + "]");
                                                               if (i == indiceExpresiones.size() - 2 && j == indiceExpresiones.size() - 1)
                                                                 intermediateCode.crear_terceto("BNE","_","_");
                                                               else{
@@ -241,11 +261,15 @@ object ::= EQUALEXP {:indiceExpresiones = new ArrayList(); intermediateCode.crea
                                                               }
                                                             }  
                                                           }
-                                                          intermediateCode.crear_terceto(":=","@retorno","true");
+                                                          numEtiqueta++;
+                                                          intermediateCode.crear_terceto("ET_" + numEtiqueta,"_","_");
+                                                          intermediateCode.crear_terceto("true", "_", "_");intermediateCode.crear_terceto(":=", "@retorno", "[" + String.valueOf(intermediateCode.cantidad())+ "]");
+                                                          //intermediateCode.crear_terceto(":=","@retorno","true");
                                                           while(!pila.empty()){
-                                                            intermediateCode.modificar_terceto(pila.pop(), "[" + String.valueOf(intermediateCode.cantidad()) + "]");
+                                                            intermediateCode.modificar_terceto(pila.pop(), "[" + String.valueOf(intermediateCode.cantidad() - 2) + "]");
                                                           }
-                                                          intermediateCode.modificar_terceto(intermediateCode.cantidad() - 2, "[" + String.valueOf(intermediateCode.cantidad() + 1) + "]");
+                                                          intermediateCode.modificar_terceto(intermediateCode.cantidad() - 4, "[" + String.valueOf(intermediateCode.cantidad() + 1) + "]");
+                                                          numEtiqueta++; intermediateCode.crear_terceto("ET_" + numEtiqueta,"_","_");
                                                         :};
 object ::= CONVDATE OPEN_BRACKET PARM_CONVDATE:str CLOSE_BRACKET {: System.out.println("convDate: " + str);
                             type = DataType.DATECONVERTED;
@@ -255,17 +279,24 @@ object ::= CONVDATE OPEN_BRACKET PARM_CONVDATE:str CLOSE_BRACKET {: System.out.p
                             intermediateCode.crear_terceto(":=", "@retorno", aux);
                           :};
 lista_expresiones ::= lista_expresiones COMA expression {:indiceExpresiones.add(indices.getIexpression());
-                                                          intermediateCode.crear_terceto("CMP","[" + indiceExpresiones.get(0).toString() + "]", "[" + indices.getIexpression().toString() + "]");
+                                                          contAux++; intermediateCode.crear_terceto(":=","@auxEqExp" + contAux, "[" + String.valueOf(indices.getIexpression()) + "]");
+                                                          intermediateCode.crear_terceto("@auxEqExp0","_","_");
+                                                          intermediateCode.crear_terceto("@auxEqExp" + contAux,"_","_");
+                                                          intermediateCode.crear_terceto("CMP","[" + String.valueOf(intermediateCode.cantidad() - 1) + "]","[" + String.valueOf(intermediateCode.cantidad()) + "]");
                                                           pila.push(intermediateCode.cantidad());
                                                           intermediateCode.crear_terceto("BE","_","_");    
                                                         :};
-lista_expresiones ::= expression {:indiceExpresiones.add(indices.getIexpression());:};
+lista_expresiones ::= expression {:indiceExpresiones.add(indices.getIexpression()); contAux = 0; intermediateCode.crear_terceto(":=","@auxEqExp" + contAux,String.valueOf(indices.getIexpression()));:};
 
-iteration ::= WHILE {:intermediateCode.crear_terceto("ETQ", " ", " " );comparaciones.push(-1);pila.push(intermediateCode.cantidad()); cant_comparar = 0;:} 
+iteration ::= WHILE {:numEtiqueta++; intermediateCode.crear_terceto("ET_" + numEtiqueta, "_", "_" );comparaciones.push(-1);pila.push(intermediateCode.cantidad()); cant_comparar = 0;:} 
               OPEN_BRACKET condition CLOSE_BRACKET {: comparaciones.push(cant_comparar);
                                                       System.out.println("Pila Or: " + comparacionesOr);
+                                                      if(!comparacionesOr.empty()){
+                                                        numEtiqueta++;
+                                                        intermediateCode.crear_terceto("ET_" + numEtiqueta,"_","_");
+                                                      }
                                                       while(!comparacionesOr.empty()){
-                                                      intermediateCode.modificar_terceto(comparacionesOr.pop(), "[" + String.valueOf(intermediateCode.cantidad()+1) + "]");
+                                                      intermediateCode.modificar_terceto(comparacionesOr.pop(), "[" + String.valueOf(intermediateCode.cantidad()) + "]");
                                                     }:} 
               OPEN_CURLY_BRACKET block CLOSE_CURLY_BRACKET {: System.out.println("While");
                                                               System.out.println("if solo \n pila: " + pila);
@@ -275,6 +306,8 @@ iteration ::= WHILE {:intermediateCode.crear_terceto("ETQ", " ", " " );comparaci
                                                                 intermediateCode.modificar_terceto(pila.pop(), "[" + String.valueOf(completar) + "]");
                                                               }
                                                               intermediateCode.crear_terceto("JMP", "[" + String.valueOf(pila.pop()) + "]", " ");
+                                                               numEtiqueta++;
+                                                              intermediateCode.crear_terceto("ET_" + numEtiqueta,"_","_");
                                                             :};
 
 escribir ::= WRITE OPEN_BRACKET STRING_CONSTANT:str CLOSE_BRACKET{: System.out.println("Write " + str);

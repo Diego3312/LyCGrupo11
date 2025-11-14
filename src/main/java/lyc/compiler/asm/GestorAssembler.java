@@ -42,14 +42,21 @@ public class GestorAssembler {
         System.out.print("Lista de Tercetos\n");
         boolean esNum = false;
         int cantVariablesAuxiliares = 0;
-        int cantEtiquetas = 0;
         String op2;
         String op1;
         String varAux;
         String etiqueta;
+        String tipo;
+        String etiquetaActual = "";
         for (Terceto terceto : listaTercetos) {
             System.out.println(terceto.toString());
-            switch (terceto.getT1()) {
+            tipo = terceto.getT1();
+            if(tipo.matches("ET_\\d+")){
+                etiquetaActual = terceto.getT1();
+                 tipo = "ET";
+            }
+               
+            switch (tipo) {
                 case ":=":
                     op2 = pilaOperandos.pop();
                     try {
@@ -251,29 +258,23 @@ public class GestorAssembler {
                 case "BGE":
                 case "BLT":
                 case "BGT":
-                case "BEQ":
+                case "BE":
                 case "BNE":
-                    etiqueta = "etiqueta" + (cantEtiquetas+1);
-                    cantEtiquetas++;
-                    pilaEtiquetas.add(etiqueta);
+                    int tercetoDestino1 = Integer.parseInt(terceto.getT2().substring(1, terceto.getT2().length() - 1));
+                    Terceto destino1 = listaTercetos.get(tercetoDestino1 - 1);
+                    etiqueta = destino1.getT1();
                     codigo.add(terceto.getT1() + " " + etiqueta);
                     codigo.add("");
                     break;
                 case "JMP":
-                    etiqueta = "etiqueta" + (cantEtiquetas+1); 
-                    cantEtiquetas++;//2
-                    pilaEtiquetas.add(etiqueta);
-                    String aux = pilaEtiquetas.pop();
-                    codigo.add("BI " + aux);
+                    int tercetoDestino = Integer.parseInt(terceto.getT2().substring(1, terceto.getT2().length() - 1));
+                    Terceto destino = listaTercetos.get(tercetoDestino - 1);
+                    etiqueta = destino.getT1();
+                    codigo.add("BI " + etiqueta);
                     codigo.add("");
-                    codigo.add(pilaEtiquetas.pop()+ ":");
-                    pilaEtiquetas.add(aux);
                     break;
                 case "ET":
-                    etiqueta = "etiqueta" + (cantEtiquetas+1);
-                    cantEtiquetas++;
-                    pilaEtiquetas.add(etiqueta);
-                    codigo.add(etiqueta + ":");
+                    codigo.add(etiquetaActual + ":");
                     codigo.add("");
                     break;
                 

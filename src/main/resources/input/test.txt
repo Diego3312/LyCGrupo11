@@ -1,5 +1,5 @@
 init {
-    a, b : Float
+    a, b : Int
     d, e, f, g : Int
     str1, str2, str3, str4 : String
     fecha : DateConverted 
@@ -8,20 +8,7 @@ init {
     d1, e1, f1, g1 : Int
     str5, str6, str7, str8 : String
 }
-e := 3
-f := 3
-d := 2
-a := d + e / f
 
-if ( a > e){
-    if ( a == a){
-    a := e
-    }
-}
-
-b := a
-
-while ( b > a){
-    a := b
-}
-
+a := 2
+b := 3
+y := equalExpressions(a + b, 5, b * 2, 3 + 2, a + b)
