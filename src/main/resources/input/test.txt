@@ -1,14 +1,97 @@
 init {
-    a, b : Int
+    a, b, r, x, c, z : Int
     d, e, f, g : Int
     str1, str2, str3, str4 : String
     fecha : DateConverted 
     y : Boolean
-    c, float1, float2 : Float
+    float1, float2 : Float
     d1, e1, f1, g1 : Int
     str5, str6, str7, str8 : String
 }
 
-a := 2
+a := 1
 b := 3
+
+while (a > b)
+{
+    write("a es mas grande que b")
+    a := a + 1
+}
+
+a := 1
+b := 1
+c := 2
+
+if (a > b AND c > b){
+    write("a es mas grande que b y c es mas grande que b")
+}
+
+x := 27 - c
+x := r + 500
+x := 34 * 3
+x := z / f
+
+a := 99999.99
+a := 99.
+a := .9999
+
+str1 := "asldk  fh sjf"
+
+#+ Esto es un comentario +#
+
+if (a > b)
+{
+    write("a es mas grande que b")
+}
+else
+{
+    write("a es mas chico o igual a b")
+}
+
+a := 1
+b := 1
+c := 2
+
+if (NOT a > b)
+{
+    write("a no es mas grande que b")
+}
+
+a := 1
+b := 1
+c := 2
+
+if (a > b OR c > b)
+{
+    write("a es mas grande que b o c es mas grande que b")
+}
+
+read(str2) #+ base es una variable +#
+
+a := 1
+b := 3
+
+while (a > b)
+{
+    write("a es mas grande que b")
+    a := a + 1
+}
+
+if (a > b){
+    if (c > b){
+        write("a es mas grande que b y c es mas grande que b")
+    }else{
+        write("a es mas grande que b")
+        write("c no es mas grande que b")
+    }
+}
+
+write("ewr") 
+write(str3)
+
+fecha := convDate(21-08-2025)
+
 y := equalExpressions(a + b, 5, b * 2, 3 + 2, a + b)
+y := equalExpressions(0, 5, a + b)
+
+

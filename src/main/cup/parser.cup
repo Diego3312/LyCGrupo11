@@ -225,6 +225,7 @@ assignment ::= IDENTIFIER:id {: System.out.println("Id: " + id + " Tipo de dato:
                                 Validate.validateTypes(simbolTable.getDataType(id.toString()), type.toString());
                                 if(funcion_asignando == "equal_expression" || funcion_asignando == "conv_date")
                                 {
+                                    System.out.println("Entre: " + id.toString() + " - " + String.valueOf(intermediateCode.cantidad()));
                                     intermediateCode.crear_terceto("@retorno","_","_" );
                                     intermediateCode.crear_terceto(":=", id.toString(), "[" + String.valueOf(intermediateCode.cantidad()) + "]" );
                                 }
@@ -242,6 +243,8 @@ object ::= STRING_CONSTANT:stringConstant {: System.out.println("String_constant
                                   simbolTable.add("_" + str, DataType.CTE_STRING, str.toString(), str.length()); 
                                   type = DataType.STRING;
                                   funcion_asignando = "cte_string";
+                                  intermediateCode.crear_terceto( "\"" + str.toString() + "\"","_","_");
+                                  indices.setIobject(intermediateCode.cantidad());
                                   :};
 object ::= EQUALEXP {:simbolTable.add("@retorno", DataType.BOOLEAN, "-", null);
 simbolTable.add("false",DataType.BOOLEAN,"0",null);simbolTable.add("true",DataType.BOOLEAN,"1",null);indiceExpresiones = new ArrayList(); 
@@ -312,14 +315,14 @@ iteration ::= WHILE {:numEtiqueta++; intermediateCode.crear_terceto("ET_" + numE
 
 escribir ::= WRITE OPEN_BRACKET STRING_CONSTANT:str CLOSE_BRACKET{: System.out.println("Write " + str);
                                                                     simbolTable.add("_" + str, DataType.CTE_STRING, str.toString(), null);
-                                                                    intermediateCode.crear_terceto("WRITE", str.toString(), "_");
+                                                                    intermediateCode.crear_terceto("%WRITE", str.toString(), "_");
                                                                   :};
 escribir ::= WRITE OPEN_BRACKET IDENTIFIER:id CLOSE_BRACKET{: System.out.println("Write " + id);
                                                               if (listStrings != null && !listStrings.contains(id.toString())){
                                                                 System.out.println("ERROR: La variable no fue declarada");
                                                                 System.exit(-1);
                                                               } 
-                                                              intermediateCode.crear_terceto("WRITE", id.toString(), "_"); 
+                                                              intermediateCode.crear_terceto("%WRITE", id.toString(), "_"); 
                                                             :};
 
 leer ::= READ OPEN_BRACKET IDENTIFIER:id CLOSE_BRACKET{: System.out.println("Read " + id );
@@ -328,7 +331,7 @@ leer ::= READ OPEN_BRACKET IDENTIFIER:id CLOSE_BRACKET{: System.out.println("Rea
                                                           System.out.println("ERROR: La variable no fue declarada");
                                                           System.exit(-1);
                                                         }     
-                                                        intermediateCode.crear_terceto("READ", id.toString(), "_");  
+                                                        intermediateCode.crear_terceto("%READ", id.toString(), "_");  
                                                        :};
 
 
@@ -357,26 +360,36 @@ type ::= INT {: System.out.println("Integer");
                 simbolTable.addIdentifiers(this.identifiersList, DataType.INT);
                 if (listInt == null )
                     listInt = new ArrayList<String>(listAux);
+                else 
+                    listInt.addAll(listAux);
                 listAux.clear(); :};
 type ::= FLOAT {: System.out.println("Float"); 
                   simbolTable.addIdentifiers(this.identifiersList, DataType.FLOAT);
                   if (listFloat == null )
                     listFloat = new ArrayList<String>(listAux);
+                  else 
+                    listFloat.addAll(listAux);
                   listAux.clear(); :};
 type ::= STRING {: System.out.println("String"); 
                    simbolTable.addIdentifiers(this.identifiersList, DataType.STRING);
                    if (listStrings == null )
                     listStrings = new ArrayList<String>(listAux);
+                   else 
+                    listStrings.addAll(listAux);
                    listAux.clear(); :};
 type ::= BOOLEAN {: System.out.println("Boolean"); 
                     simbolTable.addIdentifiers(this.identifiersList, DataType.BOOLEAN);
                     if (listBoolean == null )
                         listBoolean = new ArrayList<String>(listAux);
+                    else 
+                        listBoolean.addAll(listAux);
                     listAux.clear(); :};
 type ::= DATECONVERTED {: System.out.println("DateConverted");  
                           simbolTable.addIdentifiers(this.identifiersList, DataType.DATECONVERTED);
                           if (listDateConverted == null )
                             listDateConverted = new ArrayList<String>(listAux);
+                          else 
+                            listDateConverted.addAll(listAux);
                           listAux.clear(); :};
 
 expression ::= expression PLUS term {: System.out.println("+");
@@ -407,6 +420,7 @@ factor ::= IDENTIFIER:id  {: System.out.println("Id: " + id);
                                     System.out.println("ERROR: Debe ser tipo de dato Int o Float");
                                     System.exit(-1);
                              }
+                             System.out.println("Lista de Ints: " + listInt.toString() + "\nLista de Floats: " + listFloat.toString());
                              if ( !(    (listInt != null && listInt.contains(id)) ||
                                         (listFloat != null && listFloat.contains(id))  )){
                                     System.out.println("ERROR: La variable no fue declarada");

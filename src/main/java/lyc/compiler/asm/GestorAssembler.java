@@ -277,7 +277,11 @@ public class GestorAssembler {
                     codigo.add(etiquetaActual + ":");
                     codigo.add("");
                     break;
-                
+                case "%READ":
+                    
+                    break;
+                case "%WRITE":
+                    break;
                 default:
                     pilaOperandos.add(terceto.getT1());
                     break;
