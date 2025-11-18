@@ -229,9 +229,9 @@ assignment ::= IDENTIFIER:id {: System.out.println("Id: " + id + " Tipo de dato:
                                     intermediateCode.crear_terceto("@retorno","_","_" );
                                     intermediateCode.crear_terceto(":=", id.toString(), "[" + String.valueOf(intermediateCode.cantidad()) + "]" );
                                 }
-                                  
-                                else
+                                else{
                                   intermediateCode.crear_terceto(":=", id.toString(), "[" + indices.getIobject() + "]" );
+                                }
                             :};
 
 object ::= expression {:type = DataType.INT;
@@ -279,7 +279,8 @@ object ::= CONVDATE OPEN_BRACKET PARM_CONVDATE:str CLOSE_BRACKET {: System.out.p
                             funcion_asignando = "conv_date";
                             
                             String aux = str.toString().substring(6) + str.toString().substring(3,5) + str.toString().substring(0,2);
-                            intermediateCode.crear_terceto(":=", "@retorno", aux);
+                            intermediateCode.crear_terceto(aux, "_", "_");
+                            intermediateCode.crear_terceto(":=", "@retorno", "[" + String.valueOf(intermediateCode.cantidad()) + "]");
                           :};
 lista_expresiones ::= lista_expresiones COMA expression {:indiceExpresiones.add(indices.getIexpression());
                                                           contAux++; intermediateCode.crear_terceto(":=","@auxEqExp" + contAux, "[" + String.valueOf(indices.getIexpression()) + "]");

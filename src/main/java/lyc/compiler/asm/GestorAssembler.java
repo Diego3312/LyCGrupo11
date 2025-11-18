@@ -101,7 +101,6 @@ public class GestorAssembler {
                     }
                     op1 = pilaOperandos.pop();
                     try {
-                        Integer.parseInt(op1);
                         esNum = true;
                     } catch (NumberFormatException excepcion) {
                         esNum = false;
@@ -284,6 +283,7 @@ public class GestorAssembler {
                     break;
                 default:
                     pilaOperandos.add(terceto.getT1());
+                    System.out.println(pilaOperandos.toString());
                     break;
             }
 
