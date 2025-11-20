@@ -240,7 +240,7 @@ object ::= expression {:type = DataType.INT;
                       :};
 object ::= STRING_CONSTANT:stringConstant {: System.out.println("String_constant: " + stringConstant); 
                                   final String str = stringConstant.toString().replace("\"", ""); 
-                                  simbolTable.add("_" + str, DataType.CTE_STRING, str.toString(), str.length()); 
+                                  simbolTable.add("_" + str.replace(" ","_"), DataType.CTE_STRING, str.toString(), str.length()); 
                                   type = DataType.STRING;
                                   funcion_asignando = "cte_string";
                                   intermediateCode.crear_terceto( "\"" + str.toString() + "\"","_","_");
@@ -281,6 +281,8 @@ object ::= CONVDATE OPEN_BRACKET PARM_CONVDATE:str CLOSE_BRACKET {: System.out.p
                             String aux = str.toString().substring(6) + str.toString().substring(3,5) + str.toString().substring(0,2);
                             intermediateCode.crear_terceto(aux, "_", "_");
                             intermediateCode.crear_terceto(":=", "@retorno", "[" + String.valueOf(intermediateCode.cantidad()) + "]");
+                            simbolTable.add("_" + aux, type, aux, null);
+                            simbolTable.add("@retorno", type, "-", null);
                           :};
 lista_expresiones ::= lista_expresiones COMA expression {:indiceExpresiones.add(indices.getIexpression());
                                                           contAux++; intermediateCode.crear_terceto(":=","@auxEqExp" + contAux, "[" + String.valueOf(indices.getIexpression()) + "]");
@@ -288,9 +290,11 @@ lista_expresiones ::= lista_expresiones COMA expression {:indiceExpresiones.add(
                                                           intermediateCode.crear_terceto("@auxEqExp" + contAux,"_","_");
                                                           intermediateCode.crear_terceto("CMP","[" + String.valueOf(intermediateCode.cantidad() - 1) + "]","[" + String.valueOf(intermediateCode.cantidad()) + "]");
                                                           pila.push(intermediateCode.cantidad());
-                                                          intermediateCode.crear_terceto("BE","_","_");    
+                                                          intermediateCode.crear_terceto("BE","_","_");
+                                                          simbolTable.add("@auxEqExp" + contAux, DataType.FLOAT, "-", null); 
                                                         :};
-lista_expresiones ::= expression {:indiceExpresiones.add(indices.getIexpression()); contAux = 0; intermediateCode.crear_terceto(":=","@auxEqExp" + contAux,String.valueOf(indices.getIexpression()));:};
+lista_expresiones ::= expression {:indiceExpresiones.add(indices.getIexpression()); contAux = 0; intermediateCode.crear_terceto(":=","@auxEqExp" + contAux,String.valueOf(indices.getIexpression()));
+simbolTable.add("@auxEqExp" + contAux, DataType.FLOAT, "-", null);:};
 
 iteration ::= WHILE {:numEtiqueta++; intermediateCode.crear_terceto("ET_" + numEtiqueta, "_", "_" );comparaciones.push(-1);pila.push(intermediateCode.cantidad()); cant_comparar = 0;:} 
               OPEN_BRACKET condition CLOSE_BRACKET {: comparaciones.push(cant_comparar);
@@ -315,8 +319,10 @@ iteration ::= WHILE {:numEtiqueta++; intermediateCode.crear_terceto("ET_" + numE
                                                             :};
 
 escribir ::= WRITE OPEN_BRACKET STRING_CONSTANT:str CLOSE_BRACKET{: System.out.println("Write " + str);
-                                                                    simbolTable.add("_" + str, DataType.CTE_STRING, str.toString(), null);
+                                                                    String strAux = String.valueOf(str);
+                                                                    simbolTable.add("_" + strAux.replace("\"","").replace(" ","_"), DataType.CTE_STRING, strAux.replace("\"",""), strAux.length());
                                                                     intermediateCode.crear_terceto("%WRITE", str.toString(), "_");
+
                                                                   :};
 escribir ::= WRITE OPEN_BRACKET IDENTIFIER:id CLOSE_BRACKET{: System.out.println("Write " + id);
                                                               if (listStrings != null && !listStrings.contains(id.toString())){
@@ -436,7 +442,7 @@ factor ::= INTEGER_CONSTANT:intConstant {: System.out.println("Int Constant: " +
                                            indices.setIfactor(intermediateCode.cantidad()) ; 
                                            :};
 factor ::= FLOAT_CONSTANT:floatConstant {: System.out.println("Float Constant: " + floatConstant ); 
-                                           simbolTable.add("_" + floatConstant, DataType.CTE_FLOAT, floatConstant.toString(), null);
+                                           simbolTable.add("_" + floatConstant.toString().replace(".","_"), DataType.CTE_FLOAT, floatConstant.toString(), null);
                                            intermediateCode.crear_terceto(floatConstant.toString()," ", " ");
                                            indices.setIfactor(intermediateCode.cantidad()) ; 
                                            :};

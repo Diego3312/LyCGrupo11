@@ -93,5 +93,3 @@ fecha := convDate(21-08-2025)
 
 y := equalExpressions(a + b, 5, b * 2, 3 + 2, a + b)
 y := equalExpressions(0, 5, a + b)
-
-

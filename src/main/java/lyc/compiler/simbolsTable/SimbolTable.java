@@ -95,7 +95,7 @@ public Boolean isInTable(String nombre) {
       row.getId(),
       row.getNombre(),
       row.getValor(),
-      ""
+      row.getLongitud() == null?"-":row.getLongitud()
       );
     }
     return result;

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Stack;
 
 import lyc.compiler.intermediateCodeG.Terceto;
+import lyc.compiler.simbolsTable.DataType;
 import lyc.compiler.simbolsTable.SimbolRow;
 
 public class GestorAssembler {
@@ -30,14 +31,21 @@ public class GestorAssembler {
         listInst.add(".DATA\n");
         ///agrego la tabla de simbolos
         for(SimbolRow simbolo : TablaDeSimbolos){
-            listInst.add(String.format("%-20s %-5s %-30s", simbolo.getId(),"dd", simbolo.getValor()));
+            if(simbolo.getNombre() == DataType.CTE_STRING.toString())
+                listInst.add(String.format("%-20s %-5s %-30s", simbolo.getId(),"db", "\"" + simbolo.getValor()+ "\"" + ",'$'," + simbolo.getLongitud() + " dup(?)"));
+            else
+                listInst.add(String.format("%-20s %-5s %-30s", simbolo.getId(),"dd", simbolo.getValor()));
         }
+        listInst.add(String.format("%-20s %-5s %-30s","_buffer_len","db", "49"));
+        listInst.add(String.format("%-20s %-5s %-30s","_buffer_cont","db", "?"));
+        listInst.add(String.format("%-20s %-5s %-30s","_buffer_data","db", "49 dup(?)"));
+        
 
         //cabecera de instrucciones
-        listInst.add("\n.CODE");
-        listInst.add("\nMOV AX, @DATA");
-        listInst.add("MOV DS, AX");
-        listInst.add("MOV ES, AX\n");
+        codigo.add("\n.CODE");
+        codigo.add("\nMOV AX, @DATA");
+        codigo.add("MOV DS, AX");
+        codigo.add("MOV ES, AX\n");
 
         System.out.print("Lista de Tercetos\n");
         boolean esNum = false;
@@ -60,19 +68,24 @@ public class GestorAssembler {
                 case ":=":
                     op2 = pilaOperandos.pop();
                     try {
-                        Integer.valueOf(op2);
+                        Float.valueOf(op2);
                         esNum = true;
                     } catch (NumberFormatException excepcion) {
                         esNum = false;
                     }
                     if(esNum)
                     {
-                        op2 = "_"+op2;
+                        op2 = "_" +  op2.replace(".","_");
                         esNum = false;
                     }
+                    else if(op2.contains("\"")){
+                        op2 = op2.replace("\"","");
+                        op2 = op2.replace(" ","_");
+                    }
+
                     op1 = terceto.getT2();
                     try {
-                        Integer.valueOf(op1);
+                        Float.valueOf(op1);
                         esNum = true;
                     } catch (NumberFormatException excepcion) {
                         esNum = false;
@@ -82,32 +95,33 @@ public class GestorAssembler {
                         op1 = "_"+op1;
                         esNum = false;
                     }
-                    codigo.add("FLD " + op1);
-                    codigo.add("FSTP " + op2);
+                    codigo.add("FLD " + op2);
+                    codigo.add("FSTP " + op1);
                     codigo.add("");
                     break;
                 case "+":
                     op2 = pilaOperandos.pop();
                     try {
-                        Integer.parseInt(op2);
+                        Float.valueOf(op2);
                         esNum = true;
                     } catch (NumberFormatException excepcion) {
                         esNum = false;
                     }
                     if(esNum)
                     {
-                        op2 = "_"+op2;
+                        op2 = "_" +  op2.replace(".","_");
                         esNum = false;
                     }
                     op1 = pilaOperandos.pop();
                     try {
+                        Float.valueOf(op1);
                         esNum = true;
                     } catch (NumberFormatException excepcion) {
                         esNum = false;
                     }
                     if(esNum)
                     {
-                        op1 = "_"+op1;
+                        op1 = "_" +  op1.replace(".","_");
                         esNum = false;
                     }
                     varAux = "@aux" + (cantVariablesAuxiliares+1);
@@ -118,30 +132,31 @@ public class GestorAssembler {
                     codigo.add("FSTP " + varAux);
                     codigo.add("");
                     pilaOperandos.add(varAux);
+                    listInst.add(String.format("%-20s %-5s %-30s", varAux,"dd", "-"));//AGREGADO POR MI PARA AGREGAR varAux a .DATA
                     break;
                 case "-":
                     op2 = pilaOperandos.pop();
                     try {
-                        Integer.parseInt(op2);
+                        Float.valueOf(op2);
                         esNum = true;
                     } catch (NumberFormatException excepcion) {
                         esNum = false;
                     }
                     if(esNum)
                     {
-                        op2 = "_"+op2;
+                        op2 = "_" +  op2.replace(".","_");
                         esNum = false;
                     }
                     op1 = pilaOperandos.pop();
                     try {
-                        Integer.parseInt(op1);
+                        Float.valueOf(op1);
                         esNum = true;
                     } catch (NumberFormatException excepcion) {
                         esNum = false;
                     }
                     if(esNum)
                     {
-                        op1 = "_"+op1;
+                        op1 = "_" +  op1.replace(".","_");
                         esNum = false;
                     }
                     varAux = "@aux" + (cantVariablesAuxiliares+1);
@@ -152,30 +167,31 @@ public class GestorAssembler {
                     codigo.add("FSTP " + varAux);
                     codigo.add("");
                     pilaOperandos.add(varAux);
+                    listInst.add(String.format("%-20s %-5s %-30s", varAux,"dd", "-"));//AGREGADO POR MI PARA AGREGAR varAux a .DATA
                     break;
                 case "/":
                     op2 = pilaOperandos.pop();
                     try {
-                        Integer.parseInt(op2);
+                        Float.valueOf(op2);
                         esNum = true;
                     } catch (NumberFormatException excepcion) {
                         esNum = false;
                     }
                     if(esNum)
                     {
-                        op2 = "_"+op2;
+                        op2 = "_" +  op2.replace(".","_");
                         esNum = false;
                     }
                     op1 = pilaOperandos.pop();
                     try {
-                        Integer.parseInt(op1);
+                        Float.valueOf(op1);
                         esNum = true;
                     } catch (NumberFormatException excepcion) {
                         esNum = false;
                     }
                     if(esNum)
                     {
-                        op1 = "_"+op1;
+                        op1 = "_" +  op1.replace(".","_");
                         esNum = false;
                     }
                     varAux = "@aux" + (cantVariablesAuxiliares+1);
@@ -186,30 +202,31 @@ public class GestorAssembler {
                     codigo.add("FSTP " + varAux);
                     codigo.add("");
                     pilaOperandos.add(varAux);
+                    listInst.add(String.format("%-20s %-5s %-30s", varAux,"dd", "-"));//AGREGADO POR MI PARA AGREGAR varAux a .DATA
                     break;
                 case "*":
                     op2 = pilaOperandos.pop();
                     try {
-                        Integer.parseInt(op2);
+                        Float.valueOf(op2);
                         esNum = true;
                     } catch (NumberFormatException excepcion) {
                         esNum = false;
                     }
                     if(esNum)
                     {
-                        op2 = "_"+op2;
+                        op2 = "_" +  op2.replace(".","_");
                         esNum = false;
                     }
                     op1 = pilaOperandos.pop();
                     try {
-                        Integer.parseInt(op1);
+                        Float.valueOf(op1);
                         esNum = true;
                     } catch (NumberFormatException excepcion) {
                         esNum = false;
                     }
                     if(esNum)
                     {
-                        op1 = "_"+op1;
+                        op1 = "_" +  op1.replace(".","_");
                         esNum = false;
                     }
                     varAux = "@aux" + (cantVariablesAuxiliares+1);
@@ -220,30 +237,31 @@ public class GestorAssembler {
                     codigo.add("FSTP " + varAux);
                     codigo.add("");
                     pilaOperandos.add(varAux);
+                    listInst.add(String.format("%-20s %-5s %-30s", varAux,"dd", "-"));//AGREGADO POR MI PARA AGREGAR varAux a .DATA
                     break;
                 case "CMP":
                     op2 = pilaOperandos.pop();
                     try {
-                        Integer.parseInt(op2);
+                        Float.valueOf(op2);
                         esNum = true;
                     } catch (NumberFormatException excepcion) {
                         esNum = false;
                     }
                     if(esNum)
                     {
-                        op2 = "_"+op2;
+                        op2 = "_" +  op2.replace(".","_");
                         esNum = false;
                     }
                     op1 = pilaOperandos.pop();
                     try {
-                        Integer.parseInt(op1);
+                        Float.valueOf(op1);
                         esNum = true;
                     } catch (NumberFormatException excepcion) {
                         esNum = false;
                     }
                     if(esNum)
                     {
-                        op1 = "_"+op1;
+                        op1 = "_" +  op1.replace(".","_");
                         esNum = false;
                     }
                     codigo.add("FLD " + op1);
@@ -277,9 +295,23 @@ public class GestorAssembler {
                     codigo.add("");
                     break;
                 case "%READ":
-                    
+                    codigo.add("mov dx, OFFSET _buffer_len");
+                    codigo.add("mov ah, 0Ah");
+                    codigo.add("int 21h");
+                    codigo.add("movzx ecx, _buffer_cont");
+                    codigo.add("mov si, OFFSET _buffer_data");
+                    codigo.add("mov di, OFFSET " + terceto.getT2());
+                    codigo.add("rep movsb");
                     break;
                 case "%WRITE":
+                    String writeAux = terceto.getT2();
+                    if(terceto.getT2().contains("\"")){
+                        writeAux = writeAux.replace("\"","").replace(" ","_");
+                    }
+                    codigo.add("mov dx, OFFSET " + writeAux);
+                    codigo.add("mov ah, 9");
+                    codigo.add("int 21h");
+                    codigo.add("newline 1");
                     break;
                 default:
                     pilaOperandos.add(terceto.getT1());
