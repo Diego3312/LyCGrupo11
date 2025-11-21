@@ -296,7 +296,7 @@ lista_expresiones ::= lista_expresiones COMA expression {:indiceExpresiones.add(
 lista_expresiones ::= expression {:indiceExpresiones.add(indices.getIexpression()); contAux = 0; intermediateCode.crear_terceto(":=","@auxEqExp" + contAux,String.valueOf(indices.getIexpression()));
 simbolTable.add("@auxEqExp" + contAux, DataType.FLOAT, "-", null);:};
 
-iteration ::= WHILE {:numEtiqueta++; intermediateCode.crear_terceto("ET_" + numEtiqueta, "_", "_" );comparaciones.push(-1);pila.push(intermediateCode.cantidad()); cant_comparar = 0;:} 
+iteration ::= WHILE {:numEtiqueta++; intermediateCode.crear_terceto("ET_" + numEtiqueta, "_", "_" );pila.push(intermediateCode.cantidad()); cant_comparar = 0;:} 
               OPEN_BRACKET condition CLOSE_BRACKET {: comparaciones.push(cant_comparar);
                                                       System.out.println("Pila Or: " + comparacionesOr);
                                                       if(!comparacionesOr.empty()){
