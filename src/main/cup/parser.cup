@@ -247,8 +247,8 @@ object ::= STRING_CONSTANT:stringConstant {: System.out.println("String_constant
                                   indices.setIobject(intermediateCode.cantidad());
                                   :};
 object ::= EQUALEXP {:simbolTable.add("@retorno", DataType.BOOLEAN, "-", null);
-simbolTable.add("false",DataType.BOOLEAN,"0",null);simbolTable.add("true",DataType.BOOLEAN,"1",null);indiceExpresiones = new ArrayList(); 
-intermediateCode.crear_terceto("false", "_", "_");intermediateCode.crear_terceto(":=", "@retorno", "[" + String.valueOf(intermediateCode.cantidad())+ "]");:} 
+simbolTable.add("_false",DataType.CTE_STRING,"false",5);simbolTable.add("_true",DataType.CTE_STRING,"true",4);indiceExpresiones = new ArrayList(); 
+intermediateCode.crear_terceto( "\"" + "false\"", "_", "_");intermediateCode.crear_terceto(":=", "@retorno", "[" + String.valueOf(intermediateCode.cantidad())+ "]");:} 
            OPEN_BRACKET lista_expresiones CLOSE_BRACKET {:type = DataType.BOOLEAN; 
                                                           funcion_asignando = "equal_expression";
                                                           for(int i = 1; i < indiceExpresiones.size() - 1; i++){
@@ -266,8 +266,7 @@ intermediateCode.crear_terceto("false", "_", "_");intermediateCode.crear_terceto
                                                           }
                                                           numEtiqueta++;
                                                           intermediateCode.crear_terceto("ET_" + numEtiqueta,"_","_");
-                                                          intermediateCode.crear_terceto("true", "_", "_");intermediateCode.crear_terceto(":=", "@retorno", "[" + String.valueOf(intermediateCode.cantidad())+ "]");
-                                                          //intermediateCode.crear_terceto(":=","@retorno","true");
+                                                          intermediateCode.crear_terceto("\"true\"", "_", "_");intermediateCode.crear_terceto(":=", "@retorno", "[" + String.valueOf(intermediateCode.cantidad())+ "]");
                                                           while(!pila.empty()){
                                                             intermediateCode.modificar_terceto(pila.pop(), "[" + String.valueOf(intermediateCode.cantidad() - 2) + "]");
                                                           }
@@ -279,10 +278,10 @@ object ::= CONVDATE OPEN_BRACKET PARM_CONVDATE:str CLOSE_BRACKET {: System.out.p
                             funcion_asignando = "conv_date";
                             
                             String aux = str.toString().substring(6) + str.toString().substring(3,5) + str.toString().substring(0,2);
-                            intermediateCode.crear_terceto(aux, "_", "_");
+                            intermediateCode.crear_terceto( "\""+ aux + "\"", "_", "_");
                             intermediateCode.crear_terceto(":=", "@retorno", "[" + String.valueOf(intermediateCode.cantidad()) + "]");
                             simbolTable.add("_" + aux, type, aux, null);
-                            simbolTable.add("@retorno", type, "-", null);
+                            simbolTable.add("@retorno", DataType.STRING, "-", null);
                           :};
 lista_expresiones ::= lista_expresiones COMA expression {:indiceExpresiones.add(indices.getIexpression());
                                                           contAux++; intermediateCode.crear_terceto(":=","@auxEqExp" + contAux, "[" + String.valueOf(indices.getIexpression()) + "]");
@@ -325,11 +324,16 @@ escribir ::= WRITE OPEN_BRACKET STRING_CONSTANT:str CLOSE_BRACKET{: System.out.p
 
                                                                   :};
 escribir ::= WRITE OPEN_BRACKET IDENTIFIER:id CLOSE_BRACKET{: System.out.println("Write " + id);
-                                                              if (listStrings != null && !listStrings.contains(id.toString())){
-                                                                System.out.println("ERROR: La variable no fue declarada");
-                                                                System.exit(-1);
-                                                              } 
-                                                              intermediateCode.crear_terceto("%WRITE", id.toString(), "_"); 
+                                    String tipo_id = simbolTable.getDataType(id.toString());
+                                      if ( tipo_id == null){
+                                    System.out.println("ERROR: La variable no fue declarada");
+                                    System.exit(-1);
+                                }
+                              if(tipo_id == "STRING" || tipo_id == "DATECONVERTED" || tipo_id == "BOOLEAN")
+                               intermediateCode.crear_terceto("%WRITE", id.toString(), "_");
+                              else{
+                                intermediateCode.crear_terceto("%WRITE_NUMBER", id.toString(), "_");
+                              } 
                                                             :};
 
 leer ::= READ OPEN_BRACKET IDENTIFIER:id CLOSE_BRACKET{: System.out.println("Read " + id );

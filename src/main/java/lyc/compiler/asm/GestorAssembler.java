@@ -23,7 +23,9 @@ public class GestorAssembler {
         Stack<Integer> pilaNroCelda = new Stack<Integer>();
 
         ArrayList<String> codigo = new ArrayList<String>(); // sentencias de programacion del programador
-
+        listInst.add("include macros2.asm\r\n" + //
+                        "");
+        listInst.add("include number.asm");
         listInst.add(".MODEL LARGE");
         listInst.add(".386");
         listInst.add(".STACK 200h\n");
@@ -31,10 +33,24 @@ public class GestorAssembler {
         listInst.add(".DATA\n");
         ///agrego la tabla de simbolos
         for(SimbolRow simbolo : TablaDeSimbolos){
-            if(simbolo.getNombre() == DataType.CTE_STRING.toString())
+            if(simbolo.getNombre() == DataType.CTE_STRING.toString()){
                 listInst.add(String.format("%-20s %-5s %-30s", simbolo.getId(),"db", "\"" + simbolo.getValor()+ "\"" + ",'$'," + simbolo.getLongitud() + " dup(?)"));
-            else
-                listInst.add(String.format("%-20s %-5s %-30s", simbolo.getId(),"dd", simbolo.getValor()));
+            }
+            else if(simbolo.getNombre() == DataType.STRING.toString()){
+                listInst.add(String.format("%-20s %-5s %-30s", simbolo.getId(),"db", " 100 dup(?)"));
+            }
+            else if(simbolo.getNombre() == DataType.DATECONVERTED.toString()){
+                listInst.add(String.format("%-20s %-5s %-30s", simbolo.getId(),"db", "\"" + simbolo.getValor()+ "\"" + ",'$', 100 dup(?)"));
+            }
+            else{
+                String simbolo_valor = simbolo.getValor();
+                if(simbolo_valor == "-")
+                    simbolo_valor = "?";
+                else if(!simbolo_valor.contains("."))
+                    simbolo_valor = simbolo_valor + ".";
+                listInst.add(String.format("%-20s %-5s %-30s", simbolo.getId(),"dd", simbolo_valor));
+            }
+                
         }
         listInst.add(String.format("%-20s %-5s %-30s","_buffer_len","db", "49"));
         listInst.add(String.format("%-20s %-5s %-30s","_buffer_cont","db", "?"));
@@ -43,6 +59,7 @@ public class GestorAssembler {
 
         //cabecera de instrucciones
         codigo.add("\n.CODE");
+        codigo.add("START:");
         codigo.add("\nMOV AX, @DATA");
         codigo.add("MOV DS, AX");
         codigo.add("MOV ES, AX\n");
@@ -66,6 +83,7 @@ public class GestorAssembler {
                
             switch (tipo) {
                 case ":=":
+                    int es_string = 0;
                     op2 = pilaOperandos.pop();
                     try {
                         Float.valueOf(op2);
@@ -79,10 +97,12 @@ public class GestorAssembler {
                         esNum = false;
                     }
                     else if(op2.contains("\"")){
+                        es_string = 1;
                         op2 = op2.replace("\"","");
-                        op2 = op2.replace(" ","_");
+                        op2 = "_" + op2.replace(" ","_");
                     }
-
+                    else if( op2 == "@retorno")
+                        es_string = 1;
                     op1 = terceto.getT2();
                     try {
                         Float.valueOf(op1);
@@ -95,9 +115,13 @@ public class GestorAssembler {
                         op1 = "_"+op1;
                         esNum = false;
                     }
+                    if(es_string == 1){
+                        codigo.add("copy_str " + op2 +", " + op1 );
+                    }
+                    else{
                     codigo.add("FLD " + op2);
                     codigo.add("FSTP " + op1);
-                    codigo.add("");
+                    codigo.add("");}
                     break;
                 case "+":
                     op2 = pilaOperandos.pop();
@@ -132,7 +156,7 @@ public class GestorAssembler {
                     codigo.add("FSTP " + varAux);
                     codigo.add("");
                     pilaOperandos.add(varAux);
-                    listInst.add(String.format("%-20s %-5s %-30s", varAux,"dd", "-"));//AGREGADO POR MI PARA AGREGAR varAux a .DATA
+                    listInst.add(String.format("%-20s %-5s %-30s", varAux,"dd", "?"));//AGREGADO POR MI PARA AGREGAR varAux a .DATA
                     break;
                 case "-":
                     op2 = pilaOperandos.pop();
@@ -167,7 +191,7 @@ public class GestorAssembler {
                     codigo.add("FSTP " + varAux);
                     codigo.add("");
                     pilaOperandos.add(varAux);
-                    listInst.add(String.format("%-20s %-5s %-30s", varAux,"dd", "-"));//AGREGADO POR MI PARA AGREGAR varAux a .DATA
+                    listInst.add(String.format("%-20s %-5s %-30s", varAux,"dd", "?"));//AGREGADO POR MI PARA AGREGAR varAux a .DATA
                     break;
                 case "/":
                     op2 = pilaOperandos.pop();
@@ -202,7 +226,7 @@ public class GestorAssembler {
                     codigo.add("FSTP " + varAux);
                     codigo.add("");
                     pilaOperandos.add(varAux);
-                    listInst.add(String.format("%-20s %-5s %-30s", varAux,"dd", "-"));//AGREGADO POR MI PARA AGREGAR varAux a .DATA
+                    listInst.add(String.format("%-20s %-5s %-30s", varAux,"dd", "?"));//AGREGADO POR MI PARA AGREGAR varAux a .DATA
                     break;
                 case "*":
                     op2 = pilaOperandos.pop();
@@ -237,7 +261,7 @@ public class GestorAssembler {
                     codigo.add("FSTP " + varAux);
                     codigo.add("");
                     pilaOperandos.add(varAux);
-                    listInst.add(String.format("%-20s %-5s %-30s", varAux,"dd", "-"));//AGREGADO POR MI PARA AGREGAR varAux a .DATA
+                    listInst.add(String.format("%-20s %-5s %-30s", varAux,"dd", "?"));//AGREGADO POR MI PARA AGREGAR varAux a .DATA
                     break;
                 case "CMP":
                     op2 = pilaOperandos.pop();
@@ -280,14 +304,15 @@ public class GestorAssembler {
                     int tercetoDestino1 = Integer.parseInt(terceto.getT2().substring(1, terceto.getT2().length() - 1));
                     Terceto destino1 = listaTercetos.get(tercetoDestino1 - 1);
                     etiqueta = destino1.getT1();
-                    codigo.add(terceto.getT1() + " " + etiqueta);
+                    String salto_valido = formato_correcto_salto(terceto.getT1());
+                    codigo.add(salto_valido + " " + etiqueta);
                     codigo.add("");
                     break;
                 case "JMP":
                     int tercetoDestino = Integer.parseInt(terceto.getT2().substring(1, terceto.getT2().length() - 1));
                     Terceto destino = listaTercetos.get(tercetoDestino - 1);
                     etiqueta = destino.getT1();
-                    codigo.add("BI " + etiqueta);
+                    codigo.add("JMP " + etiqueta);
                     codigo.add("");
                     break;
                 case "ET":
@@ -295,24 +320,31 @@ public class GestorAssembler {
                     codigo.add("");
                     break;
                 case "%READ":
+                    //leer línea con funcion 0Ah de DOS
                     codigo.add("mov dx, OFFSET _buffer_len");
                     codigo.add("mov ah, 0Ah");
                     codigo.add("int 21h");
-                    codigo.add("movzx ecx, _buffer_cont");
+                    // copiar _buffer_data -> str1, usando la cantidad escrita en _buffer_cont
+                    codigo.add("xor cx, cx");
+                    codigo.add("mov cl, _buffer_cont");
                     codigo.add("mov si, OFFSET _buffer_data");
                     codigo.add("mov di, OFFSET " + terceto.getT2());
                     codigo.add("rep movsb");
+                    codigo.add("mov byte ptr [di], '$'");
                     break;
                 case "%WRITE":
                     String writeAux = terceto.getT2();
                     if(terceto.getT2().contains("\"")){
-                        writeAux = writeAux.replace("\"","").replace(" ","_");
+                        writeAux = "_" + writeAux.replace("\"","").replace(" ","_");
                     }
                     codigo.add("mov dx, OFFSET " + writeAux);
                     codigo.add("mov ah, 9");
                     codigo.add("int 21h");
                     codigo.add("newline 1");
                     break;
+                case "%WRITE_NUMBER":
+                    codigo.add("DisplayFloat " + terceto.getT2() + ", 1");
+                    codigo.add("newline 1");
                 default:
                     pilaOperandos.add(terceto.getT1());
                     System.out.println(pilaOperandos.toString());
@@ -328,7 +360,7 @@ public class GestorAssembler {
 
         listInst.add("\nMOV AX, 4C00h");
         listInst.add("INT 21h");
-        listInst.add("END");
+        listInst.add("END START");
         System.out.println("############# CODIGO ASSEMBLER #############");
         for(String instruccion : listInst){
             System.out.println(instruccion);
@@ -341,6 +373,21 @@ public class GestorAssembler {
     public ArrayList<String> getListInst(){
         return listInst;
     }
+
+public static String formato_correcto_salto(String salto){
+        if(salto == "BLE")
+            return "JBE";
+        if(salto == "BGE")
+            return "JAE";
+        if(salto == "BLT")
+            return "JB";
+        if(salto == "BGT")
+            return "JA";
+        if(salto == "BE")
+            return "JE";
+        return "JNE";
+}
+
 
     
 }

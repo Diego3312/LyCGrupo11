@@ -158,7 +158,37 @@ beep                    macro                    ;beeps speaker
                         popa
 
 endm
-  
+
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+; copy_str - copia una cadena DOS terminada en '$' desde src hacia dst.
+; Uso:
+;       copy_str  cadena_origen, cadena_destino
+; Copia byte a byte usando LODSB / STOSB hasta encontrar '$'.
+;
+; IMPORTANTE:
+;   - dst debe tener espacio suficiente.
+;   - src debe terminar en '$' (formato cadena DOS).
+;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+copy_str MACRO src, dst
+    LOCAL copiar_loop
+
+    push si
+    push di
+
+    mov si, OFFSET src      ; puntero a la cadena fuente
+    mov di, OFFSET dst      ; puntero a la cadena destino
+
+copiar_loop:
+    lodsb                   ; AL = [SI], SI++
+    stosb                   ; [DI] = AL, DI++
+    cmp al, '$'             ; fin de cadena DOS
+    jne copiar_loop
+
+    pop di
+    pop si
+ENDM
+
   
  
   

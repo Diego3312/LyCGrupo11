@@ -9,8 +9,8 @@ init {
     str5, str6, str7, str8 : String
 }
 
-a := 1
-b := 3
+a := 3
+b := 1
 
 while (a > b)
 {
@@ -21,6 +21,9 @@ while (a > b)
 a := 1
 b := 1
 c := 2
+r := 1
+z := 10
+f := 2
 
 if (a > b AND c > b){
     write("a es mas grande que b y c es mas grande que b")
