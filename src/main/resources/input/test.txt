@@ -9,16 +9,17 @@ init {
     str5, str6, str7, str8 : String
 }
 
-a := 3
-b := 1
+a := 1
+b := 3
 
-while (a > b)
+while (a < b)
 {
-    write("a es mas grande que b")
+    write("b es mas grande que a")
+    write(a)
     a := a + 1
 }
 
-a := 1
+a := 2
 b := 1
 c := 2
 r := 1
@@ -30,13 +31,19 @@ if (a > b AND c > b){
 }
 
 x := 27 - c
+write(x)
 x := r + 500
+write(x)
 x := 34 * 3
+write(x)
 x := z / f
+write(x)
 
 a := 99999.99
 a := 99.
 a := .9999
+write("valor en float de a")
+write(a)
 
 str1 := "asldk  fh sjf"
 
@@ -69,16 +76,22 @@ if (a > b OR c > b)
     write("a es mas grande que b o c es mas grande que b")
 }
 
+write("ingresar una palabra")
 read(str2) #+ base es una variable +#
+write("la palabra es")
+write(str2)
 
 a := 1
 b := 3
 
-while (a > b)
+while (a < b)
 {
-    write("a es mas grande que b")
+    write("a es mas chico que b")
+    write(a)
     a := a + 1
 }
+
+a := 4
 
 if (a > b){
     if (c > b){
@@ -89,10 +102,20 @@ if (a > b){
     }
 }
 
+str3 := "hola mundo"
 write("ewr") 
 write(str3)
 
 fecha := convDate(21-08-2025)
+write("resultado de convdate")
+write(fecha)
 
+a := 3
+b := 3
+
+write("equal exp 1")
 y := equalExpressions(a + b, 5, b * 2, 3 + 2, a + b)
+write(y)
+write("equal exp 2")
 y := equalExpressions(0, 5, a + b)
+write(y)

@@ -44,10 +44,12 @@ public class GestorAssembler {
             }
             else{
                 String simbolo_valor = simbolo.getValor();
-                if(simbolo_valor == "-")
+                if(simbolo_valor.equals("-"))
                     simbolo_valor = "?";
                 else if(!simbolo_valor.contains("."))
                     simbolo_valor = simbolo_valor + ".";
+                else if( String.valueOf(simbolo_valor.charAt(0)).equals("."))
+                    simbolo_valor = "0" + simbolo_valor; 
                 listInst.add(String.format("%-20s %-5s %-30s", simbolo.getId(),"dd", simbolo_valor));
             }
                 
